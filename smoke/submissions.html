@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Submissions - STFD</title>
+    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .submission-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: #1f2937;
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .info-block h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.25rem;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.25rem 0;
+        }
+        .info-item .label {
+            font-weight: 500;
+            color: #4b5563;
+            margin-right: 1rem;
+        }
+         .info-item .value {
+            color: #1f2937;
+            text-align: right;
+        }
+        .pdf-btn {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .pdf-btn:hover {
+            background-color: #4338ca;
+        }
+        /* Styles for the hidden PDF template */
+        #pdf-template {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 210mm;
+            padding: 15mm;
+            background: white;
+            color: black;
+            font-size: 12pt;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        #pdf-template h1 { font-size: 20pt; font-weight: bold; text-align: center; }
+        #pdf-template h2 { font-size: 14pt; font-weight: bold; margin-top: 1rem; border-bottom: 1px solid #000; padding-bottom: 2px; }
+        #pdf-template .info-table { width: 100%; margin-top: 0.5rem; }
+        #pdf-template .info-table td { padding: 4px; }
+        #pdf-template .info-table td:first-child { font-weight: bold; width: 150px; }
+        #pdf-template .checkbox { font-size: 16pt; }
+        #pdf-template #pdf-installation-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        #pdf-template #pdf-installation-table th, #pdf-template #pdf-installation-table td { border: 1px solid #000; padding: 5px; text-align: left;}
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-6 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Smoke Alarm Installation Submissions</h1>
+            <p class="text-xl text-gray-600">Springfield Township Fire Department</p>
+        </header>
+
+        <main id="submissions-container">
+            <p class="text-center text-gray-500">Loading submissions...</p>
+        </main>
+    </div>
+
+    <!-- This is the hidden template for the PDF -->
+    <div id="pdf-template" class="hidden">
+        <h1>Smoke Alarm Installation</h1>
+        
+        <h2>Resident Information</h2>
+        <table class="info-table">
+            <tr><td>Name:</td><td id="pdf-residentName"></td></tr>
+            <tr><td>Address:</td><td id="pdf-address"></td></tr>
+            <tr><td>City/State/ZIP:</td><td id="pdf-cityStateZip"></td></tr>
+            <tr><td>Phone Number:</td><td id="pdf-phone"></td></tr>
+            <tr><td>Email (optional):</td><td id="pdf-email"></td></tr>
+        </table>
+
+        <h2>Property Information</h2>
+        <table class="info-table">
+            <tr>
+                <td>Property Type:</td>
+                <td>
+                    <span id="pdf-prop-sfh" class="checkbox">☐</span> Single-Family Home &nbsp;&nbsp;
+                    <span id="pdf-prop-apt" class="checkbox">☐</span> Apartment/Condo &nbsp;&nbsp;
+                    <span id="pdf-prop-mob" class="checkbox">☐</span> Mobile Home
+                </td>
+            </tr>
+            <tr><td>Number of Floors:</td><td id="pdf-numFloors"></td></tr>
+            <tr><td>Number of Bedrooms:</td><td id="pdf-numBedrooms"></td></tr>
+            <tr><td>Existing Alarms Before Visit?</td><td id="pdf-existingAlarms"></td></tr>
+            <tr><td>Working Alarms Present?</td><td id="pdf-workingAlarms"></td></tr>
+        </table>
+        
+        <h2>Installation Details</h2>
+        <table id="pdf-installation-table">
+            <thead>
+                <tr><th>Room/Area</th><th>New Alarm Installed</th><th>Battery Checked</th><th>Alarm Tested</th><th>Notes</th></tr>
+            </thead>
+            <tbody id="pdf-installation-tbody"></tbody>
+        </table>
+        <p style="margin-top: 8px;"><strong>Number of Alarms Installed:</strong> <span id="pdf-alarmsInstalled"></span></p>
+
+        <h2>Resident Acknowledgement & Waiver</h2>
+        <p style="font-size: 10pt; margin-top: 0.5rem;">I acknowledge that the smoke alarms were installed or checked by representatives of the Springfield Township Fire Department. I understand it is my responsibility to test the alarms monthly and replace batteries as needed. The fire department is not responsible for the maintenance or future performance of these devices.</p>
+        <p style="margin-top: 1rem;">
+            <span id="pdf-receivedInfo" class="checkbox">☐</span> I have received fire safety information. &nbsp;&nbsp;
+            <span id="pdf-givePermission" class="checkbox">☐</span> I give permission for installation and testing of alarms.
+        </p>
+
+        <table class="info-table" style="margin-top: 2rem;">
+            <tr>
+                <td>Resident Signature:</td>
+                <td><img id="pdf-residentSig" style="height: 40px; display: none;"></td>
+                <td>Date:</td>
+                <td id="pdf-residentDate"></td>
+            </tr>
+            <tr>
+                <td>Fire Dept. Installer Name:</td>
+                <td id="pdf-installerName"></td>
+            </tr>
+            <tr>
+                <td>Signature:</td>
+                <td><img id="pdf-installerSig" style="height: 40px; display: none;"></td>
+                <td>Date:</td>
+                <td id="pdf-submissionDate"></td>
+            </tr>
+        </table>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlZP-8fKHBD32ZcRJbtZfrC8tw51XUVk8",
+            authDomain: "stfd-smoke-detector-form.firebaseapp.com",
+            projectId: "stfd-smoke-detector-form",
+            storageBucket: "stfd-smoke-detector-form.firebasestorage.app",
+            messagingSenderId: "1025681020503",
+            appId: "1:1025681020503:web:f2c84c6134b2d5a3c13512",
+            measurementId: "G-226TY8VVCK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const submissionsContainer = document.getElementById('submissions-container');
+        const { jsPDF } = window.jspdf;
+
+        async function generatePdf(data) {
+            const template = document.getElementById('pdf-template');
+            
+            // --- Populate the template with data ---
+            document.getElementById('pdf-residentName').textContent = data.residentName || '';
+            document.getElementById('pdf-address').textContent = data.address || '';
+            document.getElementById('pdf-cityStateZip').textContent = data.cityStateZip || '';
+            document.getElementById('pdf-phone').textContent = data.phone || '';
+            document.getElementById('pdf-email').textContent = data.email || 'N/A';
+            
+            document.getElementById('pdf-prop-sfh').textContent = data.propertyType === 'Single-Family Home' ? '☑' : '☐';
+            document.getElementById('pdf-prop-apt').textContent = data.propertyType === 'Apartment/Condo' ? '☑' : '☐';
+            document.getElementById('pdf-prop-mob').textContent = data.propertyType === 'Mobile Home' ? '☑' : '☐';
+
+            document.getElementById('pdf-numFloors').textContent = data.numFloors || '';
+            document.getElementById('pdf-numBedrooms').textContent = data.numBedrooms || '';
+            document.getElementById('pdf-existingAlarms').textContent = data.existingAlarms || '';
+            document.getElementById('pdf-workingAlarms').textContent = data.workingAlarms || '';
+            document.getElementById('pdf-alarmsInstalled').textContent = data.alarmsInstalled || '';
+            
+            const tbody = document.getElementById('pdf-installation-tbody');
+            tbody.innerHTML = ''; // Clear previous data
+            if (data.installationDetails && data.installationDetails.length > 0) {
+                data.installationDetails.forEach(d => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${d.room || ''}</td>
+                        <td>${d.newAlarmInstalled || ''}</td>
+                        <td>${d.batteryChecked || ''}</td>
+                        <td>${d.alarmTested || ''}</td>
+                        <td>${d.notes || ''}</td>
+                    `;
+                });
+            }
+
+            document.getElementById('pdf-receivedInfo').textContent = data.receivedInfo ? '☑' : '☐';
+            document.getElementById('pdf-givePermission').textContent = data.givePermission ? '☑' : '☐';
+            
+            document.getElementById('pdf-residentDate').textContent = data.residentDate || '';
+            document.getElementById('pdf-installerName').textContent = data.installerName || '';
+            document.getElementById('pdf-submissionDate').textContent = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : '';
+
+            const residentSigImg = document.getElementById('pdf-residentSig');
+            if (data.residentSignature) {
+                residentSigImg.src = data.residentSignature;
+                residentSigImg.style.display = 'block';
+            } else { residentSigImg.style.display = 'none'; }
+            
+            const installerSigImg = document.getElementById('pdf-installerSig');
+            if (data.installerSignature) {
+                installerSigImg.src = data.installerSignature;
+                installerSigImg.style.display = 'block';
+            } else { installerSigImg.style.display = 'none'; }
+            
+            // --- Generate PDF from the populated template ---
+            template.classList.remove('hidden');
+
+            try {
+                const canvas = await html2canvas(template, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = imgWidth / imgHeight;
+                const pdfHeight = (pdfWidth - 20) / ratio;
+                
+                pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, pdfHeight);
+                
+                const safeName = (data.residentName || 'resident').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const date = data.residentDate || new Date().toISOString().split('T')[0];
+                pdf.save(`STFD_Submission_${safeName}_${date}.pdf`);
+            } catch(err) {
+                console.error("Error generating PDF:", err);
+            } finally {
+                template.classList.add('hidden');
+            }
+        }
+
+        const q = query(collection(db, "submissions"), orderBy("createdAt", "desc"));
+
+        onSnapshot(q, (querySnapshot) => {
+            if (querySnapshot.empty) {
+                submissionsContainer.innerHTML = '<p class="text-center text-gray-500">No submissions found.</p>';
+                return;
+            }
+
+            submissionsContainer.innerHTML = '';
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const card = document.createElement('div');
+                card.className = 'submission-card';
+                card.dataset.docId = doc.id;
+
+                const submissionDate = data.createdAt.toDate().toLocaleString();
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="flex-grow">
+                            <h2 class="text-xl font-bold">${data.residentName}</h2>
+                            <span class="text-sm text-gray-300">${submissionDate}</span>
+                        </div>
+                        <button class="pdf-btn">Generate PDF</button>
+                    </div>
+                    <div class="card-body">
+                        <!-- The card body now only needs a brief summary -->
+                        <div class="info-item"><span class="label">Address:</span><span class="value">${data.address}</span></div>
+                        <div class="info-item"><span class="label">Installer:</span><span class="value">${data.installerName}</span></div>
+                        <div class="info-item"><span class="label">Alarms Installed:</span><span class="value">${data.alarmsInstalled}</span></div>
+                    </div>
+                `;
+                submissionsContainer.appendChild(card);
+                
+                const pdfButton = card.querySelector('.pdf-btn');
+                pdfButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    pdfButton.textContent = 'Generating...';
+                    pdfButton.disabled = true;
+                    
+                    generatePdf(data).finally(() => {
+                       pdfButton.textContent = 'Generate PDF';
+                       pdfButton.disabled = false;
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+

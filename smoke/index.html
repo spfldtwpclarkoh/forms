@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke Alarm Install Form - STFD</title>
+    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .form-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-bottom: 2rem;
+        }
+        .form-section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #bfdbfe;
+        }
+        .radio-group label, .checkbox-group label {
+            margin-right: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .radio-group input, .checkbox-group input {
+            margin-right: 0.5rem;
+        }
+        .signature-wrapper {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            cursor: pointer;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9fafb;
+            transition: border-color 0.2s;
+        }
+        .signature-wrapper:hover {
+            border-color: #3b82f6;
+        }
+        .signature-placeholder {
+            color: #6b7280;
+        }
+        .signature-image {
+            max-width: 100%;
+            max-height: 80px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-6 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Springfield Township Fire Department</h1>
+            <p class="text-xl text-gray-600">Smoke Alarm Installation Form</p>
+        </header>
+
+        <form id="installationForm">
+            <!-- Resident Information -->
+            <div class="form-section">
+                <h2 class="form-section-title">Resident Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="residentName" class="input-label">Name</label>
+                        <input type="text" id="residentName" class="form-input" required>
+                    </div>
+                    <div>
+                        <label for="phone" class="input-label">Phone Number</label>
+                        <input type="tel" id="phone" class="form-input" required>
+                    </div>
+                    <div>
+                        <label for="address" class="input-label">Address</label>
+                        <input type="text" id="address" class="form-input" required>
+                    </div>
+                    <div>
+                        <label for="cityStateZip" class="input-label">City/State/ZIP</label>
+                        <input type="text" id="cityStateZip" class="form-input" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="email" class="input-label">Email (optional)</label>
+                        <input type="email" id="email" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property Information -->
+            <div class="form-section">
+                <h2 class="form-section-title">Property Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="input-label">Property Type</label>
+                        <div class="radio-group mt-2">
+                            <label><input type="radio" name="propertyType" value="Single-Family Home" required> Single-Family Home</label>
+                            <label><input type="radio" name="propertyType" value="Apartment/Condo"> Apartment/Condo</label>
+                            <label><input type="radio" name="propertyType" value="Mobile Home"> Mobile Home</label>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="numFloors" class="input-label">Number of Floors</label>
+                        <input type="number" id="numFloors" class="form-input" min="1" required>
+                    </div>
+                     <div>
+                        <label for="numBedrooms" class="input-label">Number of Bedrooms</label>
+                        <input type="number" id="numBedrooms" class="form-input" min="0" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                         <div>
+                            <label class="input-label">Existing Alarms Before Visit?</label>
+                            <div class="radio-group mt-2">
+                                <label><input type="radio" name="existingAlarms" value="Yes" required> Yes</label>
+                                <label><input type="radio" name="existingAlarms" value="No"> No</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="input-label">Working Alarms Present?</label>
+                            <div class="radio-group mt-2">
+                                <label><input type="radio" name="workingAlarms" value="Yes" required> Yes</label>
+                                <label><input type="radio" name="workingAlarms" value="No"> No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installation Details -->
+            <div class="form-section">
+                <h2 class="form-section-title">Installation Details</h2>
+                <div id="installation-rows" class="space-y-4">
+                    <!-- Dynamic rows will be inserted here -->
+                </div>
+                <button type="button" id="add-room-btn" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition">Add Room/Area</button>
+                 <div class="mt-6">
+                    <label for="alarmsInstalled" class="input-label">Total Number of Alarms Installed</label>
+                    <input type="number" id="alarmsInstalled" class="form-input w-full md:w-1/4" min="0" required>
+                </div>
+            </div>
+
+            <!-- Acknowledgement & Waiver -->
+            <div class="form-section">
+                <h2 class="form-section-title">Resident Acknowledgement & Waiver</h2>
+                <p class="mb-4 text-gray-600">I acknowledge that the smoke alarms were installed or checked by representatives of the Springfield Township Fire Department. I understand it is my responsibility to test the alarms monthly and replace batteries as needed. The fire department is not responsible for the maintenance or future performance of these devices.</p>
+                <div class="checkbox-group space-y-2 mb-6">
+                    <label><input type="checkbox" id="receivedInfo" required> I have received fire safety information.</label>
+                    <label><input type="checkbox" id="givePermission" required> I give permission for installation and testing of alarms.</label>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="input-label">Resident Signature</label>
+                        <div id="residentSignatureWrapper" class="signature-wrapper">
+                            <img id="residentSignatureImage" src="" alt="Resident Signature" class="signature-image hidden">
+                            <span id="residentSignaturePlaceholder" class="signature-placeholder">Click to sign</span>
+                        </div>
+                        <input type="hidden" id="residentSignatureData" name="residentSignatureData" required>
+                    </div>
+                    <div>
+                        <label for="residentDate" class="input-label">Date</label>
+                        <input type="date" id="residentDate" class="form-input" required>
+                    </div>
+                    <div>
+                        <label for="installerName" class="input-label">Fire Dept. Installer Name</label>
+                        <input type="text" id="installerName" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="input-label">Installer Signature</label>
+                        <div id="installerSignatureWrapper" class="signature-wrapper">
+                            <img id="installerSignatureImage" src="" alt="Installer Signature" class="signature-image hidden">
+                            <span id="installerSignaturePlaceholder" class="signature-placeholder">Click to sign</span>
+                        </div>
+                        <input type="hidden" id="installerSignatureData" name="installerSignatureData" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition shadow-lg">Submit Form</button>
+            </div>
+        </form>
+        
+        <!-- Success Modal -->
+        <div id="successModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Success!</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500">Your form has been submitted successfully.</p>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="okButton" class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Signature Modal -->
+    <div id="signatureModal" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+            <h3 id="signatureModalTitle" class="text-xl font-semibold mb-4">Provide Signature</h3>
+            <div class="border border-gray-300 rounded-md">
+                <canvas id="signatureCanvas" class="w-full h-48"></canvas>
+            </div>
+            <div class="flex justify-end mt-4 space-x-2">
+                <button type="button" id="clearSignatureBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg">Clear</button>
+                <button type="button" id="cancelSignatureBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg">Cancel</button>
+                <button type="button" id="saveSignatureBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Save Signature</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External libraries loaded here, before the main script -->
+    <script src="./js/signature_pad.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    
+    <!-- Main application script -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlZP-8fKHBD32ZcRJbtZfrC8tw51XUVk8",
+            authDomain: "stfd-smoke-detector-form.firebaseapp.com",
+            projectId: "stfd-smoke-detector-form",
+            storageBucket: "stfd-smoke-detector-form.firebasestorage.app",
+            messagingSenderId: "1025681020503",
+            appId: "1:1025681020503:web:f2c84c6134b2d5a3c13512",
+            measurementId: "G-226TY8VVCK"
+        };
+
+        // Initialize Firebase using the compat libraries
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
+
+        const form = document.getElementById('installationForm');
+        const installationRowsContainer = document.getElementById('installation-rows');
+        const addRoomBtn = document.getElementById('add-room-btn');
+        let roomCounter = 0;
+
+        // Signature Pad Elements
+        const signatureModal = document.getElementById('signatureModal');
+        const signatureCanvas = document.getElementById('signatureCanvas');
+        const signaturePad = new SignaturePad(signatureCanvas, { 
+            backgroundColor: 'rgb(255, 255, 255)'
+        });
+        const residentSignatureWrapper = document.getElementById('residentSignatureWrapper');
+        const installerSignatureWrapper = document.getElementById('installerSignatureWrapper');
+        let currentSignature = { wrapper: null, dataInput: null, image: null, placeholder: null };
+
+        function resizeCanvas() {
+            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            signatureCanvas.width = signatureCanvas.offsetWidth * ratio;
+            signatureCanvas.height = signatureCanvas.offsetHeight * ratio;
+            signatureCanvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+        }
+
+        window.addEventListener("resize", resizeCanvas);
+        // Initial resize
+        resizeCanvas();
+
+        function openSignatureModal(target) {
+            currentSignature = target;
+            signatureModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            resizeCanvas();
+        }
+        
+        function closeSignatureModal() {
+            signatureModal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            signaturePad.clear();
+        }
+        
+        residentSignatureWrapper.addEventListener('click', () => {
+             openSignatureModal({
+                wrapper: residentSignatureWrapper,
+                dataInput: document.getElementById('residentSignatureData'),
+                image: document.getElementById('residentSignatureImage'),
+                placeholder: document.getElementById('residentSignaturePlaceholder')
+             });
+        });
+        
+        installerSignatureWrapper.addEventListener('click', () => {
+             openSignatureModal({
+                wrapper: installerSignatureWrapper,
+                dataInput: document.getElementById('installerSignatureData'),
+                image: document.getElementById('installerSignatureImage'),
+                placeholder: document.getElementById('installerSignaturePlaceholder')
+             });
+        });
+
+        document.getElementById('clearSignatureBtn').addEventListener('click', () => signaturePad.clear());
+        document.getElementById('cancelSignatureBtn').addEventListener('click', closeSignatureModal);
+        document.getElementById('saveSignatureBtn').addEventListener('click', () => {
+            if (signaturePad.isEmpty()) {
+                alert("Please provide a signature first.");
+            } else {
+                const dataURL = signaturePad.toDataURL();
+                currentSignature.image.src = dataURL;
+                currentSignature.dataInput.value = dataURL;
+                currentSignature.image.classList.remove('hidden');
+                currentSignature.placeholder.classList.add('hidden');
+                closeSignatureModal();
+            }
+        });
+
+        function createInstallationRow(roomName = '') {
+            roomCounter++;
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 border rounded-lg bg-gray-50 items-center';
+            div.innerHTML = `
+                <div class="sm:col-span-3">
+                    <label class="input-label">Room/Area</label>
+                    <input type="text" placeholder="e.g., Bedroom 1" value="${roomName}" class="form-input room-name" required>
+                </div>
+                <div class="sm:col-span-2">
+                    <div class="radio-group">
+                        <label class="input-label mb-2">Alarm Installed?</label>
+                        <div>
+                           <label><input type="radio" name="newAlarm${roomCounter}" value="Yes" required> Yes</label>
+                           <label><input type="radio" name="newAlarm${roomCounter}" value="No"> No</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="sm:col-span-2">
+                    <div class="radio-group">
+                        <label class="input-label mb-2">Battery Checked?</label>
+                         <div>
+                           <label><input type="radio" name="batteryChecked${roomCounter}" value="Yes" required> Yes</label>
+                           <label><input type="radio" name="batteryChecked${roomCounter}" value="No"> No</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="sm:col-span-2">
+                    <div class="radio-group">
+                        <label class="input-label mb-2">Alarm Tested?</label>
+                        <div>
+                           <label><input type="radio" name="alarmTested${roomCounter}" value="Yes" required> Yes</label>
+                           <label><input type="radio" name="alarmTested${roomCounter}" value="No"> No</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="input-label">Notes</label>
+                    <input type="text" class="form-input notes">
+                </div>
+                <div class="sm:col-span-1 flex justify-center">
+                     <button type="button" class="remove-room-btn bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-full text-lg">&times;</button>
+                </div>
+            `;
+            installationRowsContainer.appendChild(div);
+            
+            const removeBtn = div.querySelector('.remove-room-btn');
+            removeBtn.addEventListener('click', () => {
+                div.remove();
+            });
+        }
+        
+        ['Bedroom 1', 'Bedroom 2', 'Hallway', 'Living Room'].forEach(room => createInstallationRow(room));
+        createInstallationRow();
+
+        addRoomBtn.addEventListener('click', () => createInstallationRow());
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const installationDetails = [];
+            const rows = installationRowsContainer.querySelectorAll('.grid');
+            rows.forEach((row) => {
+                const roomName = row.querySelector('.room-name').value;
+                if (roomName) {
+                    const newAlarmInput = row.querySelector('input[name^="newAlarm"]:checked');
+                    const batteryCheckedInput = row.querySelector('input[name^="batteryChecked"]:checked');
+                    const alarmTestedInput = row.querySelector('input[name^="alarmTested"]:checked');
+
+                    installationDetails.push({
+                        room: roomName,
+                        newAlarmInstalled: newAlarmInput ? newAlarmInput.value : 'No',
+                        batteryChecked: batteryCheckedInput ? batteryCheckedInput.value : 'No',
+                        alarmTested: alarmTestedInput ? alarmTestedInput.value : 'No',
+                        notes: row.querySelector('.notes').value,
+                    });
+                }
+            });
+            
+            const propertyTypeInput = document.querySelector('input[name="propertyType"]:checked');
+            const existingAlarmsInput = document.querySelector('input[name="existingAlarms"]:checked');
+            const workingAlarmsInput = document.querySelector('input[name="workingAlarms"]:checked');
+
+            const submissionData = {
+                residentName: document.getElementById('residentName').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                cityStateZip: document.getElementById('cityStateZip').value,
+                email: document.getElementById('email').value,
+                propertyType: propertyTypeInput ? propertyTypeInput.value : '',
+                numFloors: document.getElementById('numFloors').value,
+                numBedrooms: document.getElementById('numBedrooms').value,
+                existingAlarms: existingAlarmsInput ? existingAlarmsInput.value : '',
+                workingAlarms: workingAlarmsInput ? workingAlarmsInput.value : '',
+                alarmsInstalled: document.getElementById('alarmsInstalled').value,
+                installationDetails,
+                receivedInfo: document.getElementById('receivedInfo').checked,
+                givePermission: document.getElementById('givePermission').checked,
+                residentSignature: document.getElementById('residentSignatureData').value,
+                residentDate: document.getElementById('residentDate').value,
+                installerName: document.getElementById('installerName').value,
+                installerSignature: document.getElementById('installerSignatureData').value,
+                createdAt: new Date()
+            };
+
+            try {
+                // Use the compat syntax for adding a document
+                const docRef = await db.collection("submissions").add(submissionData);
+                console.log("Document written with ID: ", docRef.id);
+                document.getElementById('successModal').classList.remove('hidden');
+                
+                document.querySelectorAll('.signature-image').forEach(img => {
+                    img.src = '';
+                    img.classList.add('hidden');
+                });
+                document.querySelectorAll('.signature-placeholder').forEach(ph => ph.classList.remove('hidden'));
+
+                form.reset();
+                roomCounter = 0;
+                installationRowsContainer.innerHTML = '';
+                ['Bedroom 1', 'Bedroom 2', 'Hallway', 'Living Room'].forEach(room => createInstallationRow(room));
+                createInstallationRow();
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                alert("There was an error submitting the form. Please try again.");
+            }
+        });
+        
+        document.getElementById('okButton').addEventListener('click', () => {
+             document.getElementById('successModal').classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
+
