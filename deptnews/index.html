@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Post Form- STFD</title>
+    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use the Inter font family */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style for the notification toast */
+        #notification {
+            transition: opacity 0.5s, transform 0.5s;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-12 px-4">
+
+    <div class="w-full max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+        
+        <!-- Logo Placeholder -->
+        <div class="flex justify-center mb-6">
+            <img src="./images/logo.png" alt="Department Logo" class="h-40 w-auto">
+        </div>
+
+        <h1 class="text-2xl font-bold text-gray-800 mb-2 text-center">Submit New's Post</h1>
+        
+        <!-- The form that will collect user data -->
+        <form id="submission-form" class="space-y-6">
+            <!-- Form Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Title Field (Required) -->
+                <div class="md:col-span-2">
+                    <label for="title" class="block text-sm font-medium text-gray-700">Title <span class="text-red-500">*</span></label>
+                    <input type="text" id="title" name="Title" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+
+                <!-- Description Field -->
+                <div class="md:col-span-2">
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="description" name="Description" rows="4" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition"></textarea>
+                </div>
+
+                <!-- Location Field -->
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                    <input type="text" id="location" name="Location" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+
+                <!-- Applies To Field -->
+                <div>
+                    <label for="applies-to" class="block text-sm font-medium text-gray-700">Applies To</label>
+                    <input type="text" id="applies-to" name="Applies To" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+
+                <!-- Date/Time to Post Field -->
+                <div>
+                    <label for="post-date" class="block text-sm font-medium text-gray-700">Date/Time to Post</label>
+                    <input type="datetime-local" id="post-date" name="Date/Time to Post" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+
+                <!-- Date to Remove Field -->
+                <div>
+                    <label for="remove-date" class="block text-sm font-medium text-gray-700">Date to Remove</label>
+                    <input type="date" id="remove-date" name="Date to Remove" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+
+                 <!-- Posted by Field -->
+                 <div class="md:col-span-2">
+                    <label for="posted-by" class="block text-sm font-medium text-gray-700">Posted by</label>
+                    <input type="text" id="posted-by" name="Posted by" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end">
+                <button type="submit" id="submit-button" class="inline-flex items-center justify-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-indigo-300">
+                    Submit
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed top-5 right-5 p-4 rounded-md text-white opacity-0 transform translate-y-[-20px] bg-green-500" role="alert">
+        <span id="notification-message"></span>
+    </div>
+
+    <script>
+        const form = document.getElementById('submission-form');
+        const submitButton = document.getElementById('submit-button');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        
+        // --- IMPORTANT ---
+        // 1. Create a Google Sheet.
+        // 2. Go to Extensions > Apps Script.
+        // 3. Paste the provided Apps Script code.
+        // 4. Deploy as a Web App (and grant permissions).
+        // 5. Copy the Web App URL and paste it below.
+        const googleWebAppUrl = 'https://script.google.com/macros/s/AKfycbywEOCurXygdi3jrC-xm3dUYYmAO_EGT17bBwWea1fmQbFr4Lgn482O0IKDulzyCT45QQ/exec'; 
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+
+            const formData = new FormData(form);
+            const data = {};
+            // Convert FormData to a plain object
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            
+            // Send data to Google Apps Script
+            fetch(googleWebAppUrl, {
+                method: 'POST',
+                mode: 'no-cors', // Important for cross-origin requests to Apps Script
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                // Because of 'no-cors' mode, we can't read the response.
+                // We'll assume success if the request doesn't throw an error.
+                showNotification('Form submitted successfully!', 'success');
+                form.reset(); // Clear the form
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                showNotification('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit';
+            });
+        });
+
+        function showNotification(message, type) {
+            notificationMessage.textContent = message;
+            // Set color based on type
+            if (type === 'success') {
+                notification.className = 'fixed top-5 right-5 p-4 rounded-md text-white opacity-0 transform translate-y-[-20px] bg-green-500';
+            } else {
+                notification.className = 'fixed top-5 right-5 p-4 rounded-md text-white opacity-0 transform translate-y-[-20px] bg-red-500';
+            }
+            notification.classList.remove('opacity-0', 'translate-y-[-20px]');
+            notification.classList.add('opacity-100', 'translate-y-0');
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('opacity-100', 'translate-y-0');
+                notification.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
+
