@@ -38,51 +38,48 @@
         
         <!-- The form that will collect user data -->
         <form id="submission-form" class="space-y-6">
-            <!-- Form Grid: 1 column on mobile/tablet, 2 on large screens and up -->
+            <!-- Title Field (Required) -->
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700">Title <span class="text-red-500">*</span></label>
+                <input type="text" id="title" name="Title" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+            </div>
+
+            <!-- Description Field -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="description" name="Description" rows="4" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition"></textarea>
+            </div>
+
+            <!-- Location and Applies To fields in a nested grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Title Field (Required) -->
-                <div class="lg:col-span-2">
-                    <label for="title" class="block text-sm font-medium text-gray-700">Title <span class="text-red-500">*</span></label>
-                    <input type="text" id="title" name="Title" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
-                </div>
-
-                <!-- Description Field -->
-                <div class="lg:col-span-2">
-                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea id="description" name="Description" rows="4" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition"></textarea>
-                </div>
-
-                <!-- Location Field -->
                 <div>
                     <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
                     <input type="text" id="location" name="Location" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
-
-                <!-- Applies To Field -->
                 <div>
                     <label for="applies-to" class="block text-sm font-medium text-gray-700">Applies To</label>
                     <input type="text" id="applies-to" name="Applies To" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
+            </div>
 
-                <!-- Date/Time to Post Field -->
+            <!-- Date fields in their own nested grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                     <label for="post-date" class="block text-sm font-medium text-gray-700">Date/Time to Post</label>
                     <input type="datetime-local" id="post-date" name="Date/Time to Post" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
-
-                <!-- Date to Remove Field -->
                 <div>
                     <label for="remove-date" class="block text-sm font-medium text-gray-700">Date to Remove</label>
                     <input type="date" id="remove-date" name="Date to Remove" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
-
-
-                 <!-- Posted by Field -->
-                 <div class="lg:col-span-2">
-                    <label for="posted-by" class="block text-sm font-medium text-gray-700">Posted by</label>
-                    <input type="text" id="posted-by" name="Posted by" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
-                </div>
             </div>
+
+            <!-- Posted by Field -->
+            <div>
+                <label for="posted-by" class="block text-sm font-medium text-gray-700">Posted by</label>
+                <input type="text" id="posted-by" name="Posted by" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+            </div>
+
 
             <!-- Submit Button -->
             <div class="flex justify-end pt-2">
