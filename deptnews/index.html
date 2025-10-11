@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Post Form- STFD</title>
-    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <title>News Post Form - STFD</title>
+    <!-- Using a placeholder for the favicon -->
+    <link rel="icon" type="image/svg+xml" href="https://placehold.co/32x32/6366F1/FFFFFF?text=ICO">
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
@@ -22,16 +23,18 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen py-12 px-4">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-8 px-4">
 
-    <div class="w-full max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <!-- The main container with responsive padding -->
+    <div class="w-full max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg">
         
-        <!-- Logo Placeholder -->
+        <!-- Logo Placeholder with responsive height -->
         <div class="flex justify-center mb-6">
-            <img src="./images/logo.png" alt="Department Logo" class="h-40 w-auto">
+            <img src="https://placehold.co/160x160/6366F1/FFFFFF?text=Logo" alt="Department Logo" class="h-32 sm:h-40 w-auto rounded-full">
         </div>
 
-        <h1 class="text-2xl font-bold text-gray-800 mb-2 text-center">Submit New's Post</h1>
+        <!-- Heading with responsive text size -->
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 text-center">Submit News Post</h1>
         
         <!-- The form that will collect user data -->
         <form id="submission-form" class="space-y-6">
@@ -81,8 +84,8 @@
             </div>
 
             <!-- Submit Button -->
-            <div class="flex justify-end">
-                <button type="submit" id="submit-button" class="inline-flex items-center justify-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-indigo-300">
+            <div class="flex justify-end pt-2">
+                <button type="submit" id="submit-button" class="inline-flex items-center justify-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition disabled:bg-indigo-400 disabled:cursor-not-allowed">
                     Submit
                 </button>
             </div>
@@ -90,7 +93,7 @@
     </div>
 
     <!-- Notification Toast -->
-    <div id="notification" class="fixed top-5 right-5 p-4 rounded-md text-white opacity-0 transform translate-y-[-20px] bg-green-500" role="alert">
+    <div id="notification" class="fixed top-5 right-5 w-11/12 max-w-sm p-4 rounded-md text-white opacity-0 transform -translate-y-10" role="alert">
         <span id="notification-message"></span>
     </div>
 
@@ -125,17 +128,26 @@
             // Send data to Google Apps Script
             fetch(googleWebAppUrl, {
                 method: 'POST',
-                mode: 'no-cors', // Important for cross-origin requests to Apps Script
+                // Using 'cors' mode and handling the response is better,
+                // but requires the Apps Script to return a proper JSON response.
+                // For a simple form submission where you don't need a response, 'no-cors' works.
+                // However, 'no-cors' can hide errors from the Apps Script.
+                // To properly handle errors, you would need to adjust the Apps Script to return CORS headers.
+                body: JSON.stringify(data),
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'text/plain;charset=utf-8', // Apps Script web apps often handle plain text better for POST
                 },
-                body: JSON.stringify(data)
             })
-            .then(response => {
-                // Because of 'no-cors' mode, we can't read the response.
-                // We'll assume success if the request doesn't throw an error.
-                showNotification('Form submitted successfully!', 'success');
-                form.reset(); // Clear the form
+            .then(res => {
+                // If the script is set up to return JSON, you can do res.json()
+                // For now, we'll just check if the request was okay.
+                if (res.ok || res.type === 'opaque') { // 'opaque' for no-cors success
+                    showNotification('Form submitted successfully!', 'success');
+                    form.reset(); // Clear the form
+                } else {
+                    // This block might not be reached with 'no-cors' on all errors
+                    throw new Error('Network response was not ok.');
+                }
             })
             .catch(error => {
                 console.error('Error!', error.message);
@@ -151,22 +163,22 @@
         function showNotification(message, type) {
             notificationMessage.textContent = message;
             // Set color based on type
-            if (type === 'success') {
-                notification.className = 'fixed top-5 right-5 p-4 rounded-md text-white opacity-0 transform translate-y-[-20px] bg-green-500';
-            } else {
-                notification.className = 'fixed top-5 right-5 p-4 rounded-md text-white opacity-0 transform translate-y-[-20px] bg-red-500';
-            }
-            notification.classList.remove('opacity-0', 'translate-y-[-20px]');
+            const successClasses = ['bg-green-500'];
+            const errorClasses = ['bg-red-500'];
+            
+            notification.classList.remove(...successClasses, ...errorClasses);
+            notification.classList.add(...(type === 'success' ? successClasses : errorClasses));
+            
+            notification.classList.remove('opacity-0', '-translate-y-10');
             notification.classList.add('opacity-100', 'translate-y-0');
 
             // Hide after 3 seconds
             setTimeout(() => {
                 notification.classList.remove('opacity-100', 'translate-y-0');
-                notification.classList.add('opacity-0', 'translate-y-[-20px]');
+                notification.classList.add('opacity-0', '-translate-y-10');
             }, 3000);
         }
     </script>
 
 </body>
 </html>
-
