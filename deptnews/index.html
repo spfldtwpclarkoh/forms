@@ -21,6 +21,12 @@
         #notification {
             transition: opacity 0.5s, transform 0.5s;
         }
+        /* Custom styles for date and time inputs to ensure proper sizing */
+        input[type="date"], input[type="datetime-local"] {
+            width: auto; /* Reverts to the browser's default sizing */
+            max-width: 100%; /* Ensures it doesn't exceed its container */
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen py-8 px-4">
@@ -66,11 +72,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="post-date" class="block text-sm font-medium text-gray-700">Date/Time to Post</label>
-                    <input type="datetime-local" id="post-date" name="Date/Time to Post" class="mt-1 block w-full min-w-0 px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    <input type="datetime-local" id="post-date" name="Date/Time to Post" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
                 <div>
                     <label for="remove-date" class="block text-sm font-medium text-gray-700">Date to Remove</label>
-                    <input type="date" id="remove-date" name="Date to Remove" class="mt-1 block w-full min-w-0 px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    <input type="date" id="remove-date" name="Date to Remove" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
             </div>
 
