@@ -11,6 +11,13 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        /* Custom styles for date and time inputs to ensure proper sizing */
+        input[type="date"], input[type="datetime-local"] {
+            width: 90%; /* Reverts to the browser's default sizing */
+            max-width: 100%; /* Ensures it doesn't exceed its container */
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen py-12">
@@ -29,22 +36,22 @@
                     <label for="unit" class="block text-sm font-medium text-gray-700">Unit ID</label>
                     <select name="unit" id="unit" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="" disabled selected>Select a Unit</option>
+                        <option value="Medic 101">Medic 101</option>
+                        <option value="Medic 107">Medic 107</option>
+                        <option value="Medic 114">Medic 114</option>
+                        <option value="Medic 122">Medic 122</option>
+                        <option value="Medic 124">Medic 124</option>
                         <option value="Ladder 58">Ladder 58</option>
                         <option value="Engine 58">Engine 58</option>
                         <option value="Brush 58">Brush 58</option>
-                        <option value="Medic 114">Medic 114</option>
-                        <option value="Medic 107">Medic 107</option>
                         <option value="ATV 58">ATV 58</option>
                         <option value="Rescue 72">Rescue 72</option>
                         <option value="Engine 72">Engine 72</option>
                         <option value="Tanker 72">Tanker 72</option>
                         <option value="Brush 72">Brush 72</option>
-                        <option value="Medic 122">Medic 122</option>
                         <option value="Engine 56">Engine 56</option>
                         <option value="Tanker 56">Tanker 56</option>
                         <option value="Boat 56">Boat 56</option>
-                        <option value="Medic 101">Medic 101</option>
-                        <option value="Medic 124">Medic 124</option>
                     </select>
                 </div>
 
