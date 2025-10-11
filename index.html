@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Work -STFD</title>
+    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for date/time picker icon */
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(0.6);
+        }
+        /* Custom styles for date and time inputs to ensure proper sizing */
+        input[type="date"], input[type="datetime-local"] {
+            width: 90%; /* Reverts to the browser's default sizing */
+            max-width: 100%; /* Ensures it doesn't exceed its container */
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
+
+        <!-- Logo Placeholder -->
+        <div class="flex justify-center mb-6">
+            <!-- Instructions: Replace the src attribute with the path to your local logo file -->
+            <img src="./images/logo.png" alt="Dept Logo" class="h-40">
+        </div>
+
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">Road Work & Closure Entry</h1>
+
+        <!-- The 'data-form' attribute is used to identify the form in our script -->
+        <form id="data-form">
+
+            <!-- Form fields in the correct order -->
+            <div class="space-y-6 mb-6">
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Location <span class="text-red-500">*</span></label>
+                    <input type="text" id="location" name="Location *" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="e.g., SR 68, I 70" required>
+                </div>
+                
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="description" name="Description" rows="4" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Provide a brief description..."></textarea>
+                </div>
+
+                 <div>
+                    <label for="start-date-time" class="block text-sm font-medium text-gray-700 mb-1">Start Date/Time</label>
+                    <input type="datetime-local" id="start-date-time" name="Start Date/Time" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+
+                 <div>
+                    <label for="estimated-completion" class="block text-sm font-medium text-gray-700 mb-1">Estimated Completion</label>
+                    <input type="date" id="estimated-completion" name="Estimated Completion" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+
+                <div>
+                    <label for="date-time-entered" class="block text-sm font-medium text-gray-700 mb-1">Date/Time Entered</label>
+                    <input type="datetime-local" id="date-time-entered" name="Date/Time Entered" class="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg cursor-not-allowed" readonly>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end">
+                <button type="submit" id="submit-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                    Submit to Sheet
+                </button>
+            </div>
+        </form>
+
+        <!-- Message containers for success/error feedback -->
+        <div id="success-message" class="hidden mt-4 p-4 bg-green-100 text-green-800 border border-green-200 rounded-lg">
+            Form submitted successfully!
+        </div>
+        <div id="error-message" class="hidden mt-4 p-4 bg-red-100 text-red-800 border border-red-200 rounded-lg">
+            An error occurred. Please try again.
+        </div>
+    </div>
+
+    <!-- Instructions for setting up the Google Apps Script have been removed for brevity, as you have already done this. -->
+
+    <script>
+        // 1. !!! IMPORTANT !!! PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGUC-Goq7cGEvGzNzzIEfZkcByuCCJlCO5dtfkyEU40I5WmaQIvmHGlNBRnnYu7OLj/exec';
+
+        const form = document.getElementById('data-form');
+        const submitButton = document.getElementById('submit-button');
+        const successMessage = document.getElementById('success-message');
+        const errorMessage = document.getElementById('error-message');
+        const dateTimeField = document.getElementById('date-time-entered');
+
+        /**
+         * Formats a date object into the YYYY-MM-DDTHH:MM format required by datetime-local inputs,
+         * ensuring the time is always in the 'America/New_York' (EDT/EST) timezone.
+         * @param {Date} date The date object to format.
+         * @returns {string} The formatted local date-time string for the Eastern timezone.
+         */
+        const getFormattedDateTime = (date) => {
+            // Options for formatting in Eastern Time (America/New_York).
+            const options = {
+                timeZone: 'America/New_York',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false // Use 24-hour format.
+            };
+
+            // Using 'en-CA' locale is a trick to get the YYYY-MM-DD format easily.
+            const formatter = new Intl.DateTimeFormat('en-CA', options);
+            const parts = formatter.formatToParts(date);
+            
+            const partValue = (type) => parts.find(part => part.type === type)?.value || '';
+
+            const year = partValue('year');
+            const month = partValue('month');
+            const day = partValue('day');
+            // The Intl API can return '24' for the hour, which is invalid for datetime-local inputs.
+            // It needs to be converted to '00' for the start of a new day.
+            let hour = partValue('hour');
+            if (hour === '24') {
+                hour = '00';
+            }
+            const minute = partValue('minute');
+            
+            // Assemble the string in the required format: YYYY-MM-DDTHH:MM
+            return `${year}-${month}-${day}T${hour}:${minute}`;
+        };
+
+        // Function to set the current time in the read-only field
+        const setCurrentTime = () => {
+             if (dateTimeField) {
+                dateTimeField.value = getFormattedDateTime(new Date());
+            }
+        };
+
+        // Set the current time when the page loads
+        document.addEventListener('DOMContentLoaded', setCurrentTime);
+
+        // Handle the form submission
+        form.addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevent the default form submission behavior
+
+            // Disable button to prevent multiple submissions
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            // The Fetch API is used to send the form data to the script URL
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: new FormData(form),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    successMessage.classList.remove('hidden');
+                    form.reset(); // Clear the form fields
+                    setCurrentTime(); // Reset the time field to the new current time
+                } else {
+                    // It's helpful to log the error for debugging
+                    console.error('Submission error:', data.error);
+                    errorMessage.classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+                errorMessage.classList.remove('hidden');
+            })
+            .finally(() => {
+                // Re-enable the button after the process is complete
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit to Sheet';
+            });
+        });
+    </script>
+
+</body>
+</html>
+
