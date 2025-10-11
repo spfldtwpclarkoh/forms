@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>News Post Form - STFD</title>
     <!-- Using a placeholder for the favicon -->
-    <link rel="icon" type="image/svg+xml" href="https://placehold.co/32x32/6366F1/FFFFFF?text=ICO">
+    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
@@ -38,16 +38,16 @@
         
         <!-- The form that will collect user data -->
         <form id="submission-form" class="space-y-6">
-            <!-- Form Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Form Grid: Stays 1 column until the 'lg' breakpoint -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Title Field (Required) -->
-                <div class="md:col-span-2">
+                <div class="lg:col-span-2">
                     <label for="title" class="block text-sm font-medium text-gray-700">Title <span class="text-red-500">*</span></label>
                     <input type="text" id="title" name="Title" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
 
                 <!-- Description Field -->
-                <div class="md:col-span-2">
+                <div class="lg:col-span-2">
                     <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
                     <textarea id="description" name="Description" rows="4" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition"></textarea>
                 </div>
@@ -65,19 +65,19 @@
                 </div>
 
                 <!-- Date/Time to Post Field -->
-                <div class="md:col-span-2">
+                <div>
                     <label for="post-date" class="block text-sm font-medium text-gray-700">Date/Time to Post</label>
                     <input type="datetime-local" id="post-date" name="Date/Time to Post" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
 
                 <!-- Date to Remove Field -->
-                <div class="md:col-span-2">
+                <div>
                     <label for="remove-date" class="block text-sm font-medium text-gray-700">Date to Remove</label>
                     <input type="date" id="remove-date" name="Date to Remove" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
 
                  <!-- Posted by Field -->
-                 <div class="md:col-span-2">
+                 <div class="lg:col-span-2">
                     <label for="posted-by" class="block text-sm font-medium text-gray-700">Posted by</label>
                     <input type="text" id="posted-by" name="Posted by" class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                 </div>
