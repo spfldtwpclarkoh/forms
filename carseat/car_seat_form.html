@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Seat Check Form v.7.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Arial&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #000;
+            background-color: #f3f4f6; /* gray-100 for a lighter background */
+        }
+        .form-container {
+            max-width: 8.5in; /* Standard page width for readability */
+            margin: 2rem auto;
+        }
+        .form-page {
+            background-color: white;
+            padding: 0.75in;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            border: 1px solid #ccc;
+        }
+        .form-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+        .form-header h1 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .form-header p {
+            font-size: 14px;
+        }
+
+        .input-field {
+            border: none;
+            border-bottom: 1px solid #000;
+            padding: 2px 0;
+            background-color: transparent;
+            width: 100%;
+            font-size: 12px;
+            border-radius: 0;
+        }
+        .input-field:focus {
+            outline: none;
+        }
+        .input-field[readonly] {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        label {
+            font-size: 10px;
+            color: #333;
+            display: block;
+        }
+        .flex-grid {
+            display: flex;
+            gap: 16px;
+        }
+        .flex-col {
+            flex: 1;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 2px;
+            cursor: pointer;
+        }
+        
+        .form-input {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border: 1px solid #000;
+            margin-right: 6px;
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            cursor: pointer;
+            background-color: white;
+            flex-shrink: 0;
+        }
+        .form-input:checked::after {
+            content: '✔';
+            font-weight: bold;
+            font-size: 14px;
+            color: black;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            line-height: 1;
+        }
+
+        .section {
+            border: 1px solid #000;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+        .section-title {
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            background-color: #ccc;
+            margin: -8px -8px 8px -8px;
+            padding: 2px;
+        }
+        .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-3-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+        .grid-4-col { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
+        .bordered-box {
+            border: 1px solid black;
+            padding: 4px;
+            margin-bottom: 8px;
+        }
+        .small-text { font-size: 10px; }
+        .tiny-text { font-size: 9px; }
+        .line { border-bottom: 1px solid #000; height: 1.2em;}
+        #signature-pad-container {
+            border: 1px solid #000;
+            width: 100%;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <!-- Single Scrolling Page -->
+        <div class="form-page">
+            <div class="form-header">
+                <h1>Car Seat Check Form v.7.0</h1>
+                <p>www.carseatcheckform.org</p>
+            </div>
+
+            <div class="flex-grid mb-1">
+                <div class="w-1/2"><input type="text" id="first-name" class="input-field"><label>First Name</label></div>
+                <div class="w-1/2"><input type="text" id="last-name" class="input-field"><label>Last Name</label></div>
+            </div>
+             <div class="flex-grid mb-1">
+                <div class="flex-col"><input type="text" id="address" class="input-field"><label>Address</label></div>
+                <div class="flex-col"><input type="text" id="city" class="input-field"><label>City</label></div>
+                <div class="w-1/6"><input type="text" id="state" class="input-field"><label>State</label></div>
+                <div class="w-1/6"><input type="text" id="zip" class="input-field"><label>Zip</label></div>
+            </div>
+            <div class="flex-grid mb-1">
+                 <div class="flex-col"><input type="text" id="county" class="input-field"><label>County</label></div>
+                 <div class="flex-col"><input type="text" id="phone" class="input-field"><label>Phone</label></div>
+                 <div class="flex-col"><input type="text" id="email" class="input-field"><label>Email Address</label></div>
+            </div>
+             <div class="flex-grid mb-1">
+                 <div class="flex-col"><input type="text" id="vehicle-make" class="input-field"><label>Vehicle Make</label></div>
+                 <div class="flex-col"><input type="text" id="vehicle-model" class="input-field"><label>Model/Trim</label></div>
+                 <div class="w-1/6"><input type="text" id="vehicle-year" class="input-field"><label>Year</label></div>
+            </div>
+
+            <p class="text-xs my-2">
+                I understand and agree that the sole purpose of this program is to help reduce the incidence of improper installation and use of car seats, booster seats
+and seat belts, and that this inspection and demonstration is being provided as a free educational service to me. I realize that the program sponsors
+and certified child passenger safety technicians inspecting the seat(s) cannot fully evaluate the quality, safety, or condition of my car seat, booster seat,
+or the vehicle seat, safety belts, or any component of the vehicle now or in the future. Furthermore, I understand that the actions taken in this program
+will not guarantee my child's safety in a motor vehicle crash. I understand that it is important to read and follow the instruction manuals for both the
+vehicle and the car seat. For these reasons, I hereby release any program participants and any participating organizations or individuals, including the
+site owner, from any present or future liability for any injuries or damages that may result from a vehicle collision or otherwise.
+            </p>
+
+            <div class="flex-grid items-end">
+                <div class="flex-grow">
+                    <div id="signature-display-container" class="relative">
+                        <img id="signature-image" class="hidden w-full h-12 object-contain border-b border-black">
+                        <button id="sign-button" type="button" class="w-full text-left py-2 border-b border-black">Click to Sign</button>
+                    </div>
+                    <label>Caregiver Signature</label>
+                </div>
+                <div class="w-1/6"><input type="text" class="input-field"><label>Month</label></div>
+                <div class="w-1/6"><input type="text" class="input-field"><label>Day</label></div>
+                <div class="w-1/6"><input type="text" class="input-field"><label>Year</label></div>
+            </div>
+            
+            <div class="flex-grid my-2 items-center">
+                 <p class="text-xs font-bold">Search for vehicle recalls at checktoprotect.org.</p>
+                 <p class="text-xs">Vehicle recall listed?</p>
+                 <label class="checkbox-label"><input type="radio" name="recall_listed" class="form-input">Yes</label>
+                 <label class="checkbox-label"><input type="radio" name="recall_listed" class="form-input">No</label>
+                 <label class="checkbox-label"><input type="radio" name="recall_listed" class="form-input">Didn't Search</label>
+            </div>
+            
+            <div class="space-y-1">
+                <div><input type="text" class="input-field" value="Springfield Township Fire Department (Clark County, Ohio)" readonly><label>What Agency is hosting this car seat check?</label></div>
+                <div><input type="text" class="input-field"><label>Technicians Participating (T# and last name, include Lead Tech)</label></div>
+                <div class="flex-grid">
+                    <div class="flex-col"><input type="text" class="input-field" value="OHIO" readonly><label>What state is this car seat check taking place in?</label></div>
+                    <div class="flex-col"><input type="text" class="input-field"><label>What brought the caregiver to the seat check?</label></div>
+                </div>
+            </div>
+
+            <!-- ... Rest of the form content ... -->
+            <div class="section mt-2">
+                <div class="section-title">CHILD ON ARRIVAL</div>
+                <div class="grid-3-col">
+                    <div class="bordered-box">
+                        <p class="tiny-text font-bold">1. Child's Age in Years</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="child_age_years" class="form-input">Unborn (Skip to #8)</label>
+                        <label class="checkbox-label small-text"><input type="radio" name="child_age_years" class="form-input">No Child Present (Skip to #8)</label>
+                        <div class="flex-grid text-xs">
+                           <div>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">0&lt;1</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">1&lt;2</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">2&lt;3</label>
+                           </div>
+                           <div>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">3&lt;4</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">4&lt;5</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">5&lt;6</label>
+                           </div>
+                           <div>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">6&lt;7</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">7&lt;8</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">8&lt;9</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_years" class="form-input">9+</label>
+                           </div>
+                        </div>
+                         <p class="tiny-text font-bold mt-1">1a. If child is under 1 year, select age in months.</p>
+                         <div class="flex-grid text-xs">
+                            <label class="checkbox-label"><input type="radio" name="child_age_months" class="form-input">0-3</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_months" class="form-input">3&lt;6</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_months" class="form-input">6&lt;9</label>
+                            <label class="checkbox-label"><input type="radio" name="child_age_months" class="form-input">9&lt;12</label>
+                         </div>
+                    </div>
+                    <div class="bordered-box">
+                        <p class="tiny-text font-bold">2. Weight (lbs.)</p><input type="text" class="input-field mb-2">
+                        <p class="tiny-text font-bold">3. Height (in.)</p><input type="text" class="input-field">
+                    </div>
+                     <div class="bordered-box">
+                        <p class="tiny-text font-bold">4. How were weight and height collected?</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="wh_collected" class="form-input">Caregiver Reported/Other Source</label>
+                        <label class="checkbox-label small-text"><input type="radio" name="wh_collected" class="form-input">Measured at Car Seat Check</label>
+                        <p class="tiny-text font-bold mt-2">5. Vehicle Present</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="vehicle_present" class="form-input">Yes</label>
+                        <label class="checkbox-label small-text"><input type="radio" name="vehicle_present" class="form-input">No</label>
+                    </div>
+                     <div class="bordered-box">
+                        <p class="tiny-text font-bold">6. Child Location in Vehicle</p>
+                        <div class="grid-2-col">
+                          <div>
+                            <label class="checkbox-label small-text"><input type="radio" name="child_location" class="form-input">Front Row</label>
+                            <label class="checkbox-label small-text"><input type="radio" name="child_location" class="form-input">2nd Row</label>
+                            <label class="checkbox-label small-text"><input type="radio" name="child_location" class="form-input">3rd Row</label>
+                           </div>
+                           <div>
+                            <label class="checkbox-label small-text"><input type="radio" name="child_location" class="form-input">4th Row</label>
+                            <label class="checkbox-label small-text"><input type="radio" name="child_location" class="form-input">No Child Present</label>
+                            <label class="checkbox-label small-text"><input type="radio" name="child_location" class="form-input">N/A</label>
+                           </div>
+                        </div>
+                    </div>
+                    <div class="bordered-box">
+                        <p class="tiny-text font-bold">7. Child Secured Using</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="child_secured_using" class="form-input">CS Harness (Skip to #8)</label>
+                        <label class="checkbox-label small-text"><input type="radio" name="child_secured_using" class="form-input">Unrestrained (Skip to #8)</label>
+                        <label class="checkbox-label small-text"><input type="radio" name="child_secured_using" class="form-input">Lap-and-Shoulder Belt</label>
+                        <label class="checkbox-label small-text"><input type="radio" name="child_secured_using" class="form-input">Lap Belt</label>
+                    </div>
+                    <div class="bordered-box">
+                        <p class="tiny-text font-bold">7a. Child Seat Belt Correct</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="child_belt_correct" class="form-input">Yes <input type="radio" name="child_belt_correct" class="form-input ml-2">No <input type="radio" name="child_belt_correct" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text">*If no, select all that apply.</p>
+                         <label class="checkbox-label tiny-text"><input type="checkbox" name="child_belt_issues[]" class="form-input">Incorrect Fit on Child</label>
+                         <label class="checkbox-label tiny-text"><input type="checkbox" name="child_belt_issues[]" class="form-input">Shoulder Belt</label>
+                         <label class="checkbox-label tiny-text"><input type="checkbox" name="child_belt_issues[]" class="form-input">Lap Belt</label>
+                         <label class="checkbox-label tiny-text"><input type="checkbox" name="child_belt_issues[]" class="form-input">Non-approved Products</label>
+                         <label class="checkbox-label tiny-text"><input type="checkbox" name="child_belt_issues[]" class="form-input">Other:</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                 <div class="section-title">CS FINDINGS ON ARRIVAL <span class="text-xs font-normal ml-2">CS Car Seat | RF = Rear-Facing | FF = Forward-Facing</span></div>
+                 <div class="grid-3-col">
+                    <div>
+                        <p class="tiny-text font-bold">8. CS Location in Vehicle</p>
+                        <div class="flex-grid text-xs">
+                           <div>
+                            <label class="checkbox-label"><input type="radio" name="cs_location" class="form-input">Front Row</label>
+                            <label class="checkbox-label"><input type="radio" name="cs_location" class="form-input">2nd Row</label>
+                            <label class="checkbox-label"><input type="radio" name="cs_location" class="form-input">3rd Row</label>
+                           </div>
+                           <div>
+                             <label class="checkbox-label"><input type="radio" name="cs_location" class="form-input">4th Row</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_location" class="form-input">No CS (Skip to #35)</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_location" class="form-input">Uninstalled</label>
+                           </div>
+                        </div>
+                        <p class="tiny-text font-bold mt-2">9. CS Type</p>
+                        <div class="text-xs">
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">RF Only without Base</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">RF Only with Base</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">Base Only</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">RF Convertible</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">FF with Harness</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">High Back Booster</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">Backless Booster</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">Specialized Restraint</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">Vest</label>
+                             <label class="checkbox-label"><input type="radio" name="cs_type" class="form-input">Other:</label>
+                        </div>
+                        <p class="tiny-text font-bold mt-2">11. CS Installed Using</p>
+                         <p class="tiny-text">*Select all that apply.</p>
+                         <div class="text-xs">
+                            <label class="checkbox-label"><input type="checkbox" name="cs_installed_using[]" class="form-input">Uninstalled (Skip to #22)</label>
+                             <label class="checkbox-label"><input type="checkbox" name="cs_installed_using[]" class="form-input">Lower Anchors</label>
+                             <label class="checkbox-label"><input type="checkbox" name="cs_installed_using[]" class="form-input">Tether</label>
+                             <label class="checkbox-label"><input type="checkbox" name="cs_installed_using[]" class="form-input">Lap-and-Shoulder Belt</label>
+                             <label class="checkbox-label"><input type="checkbox" name="cs_installed_using[]" class="form-input">Lap Belt</label>
+                             <label class="checkbox-label"><input type="checkbox" name="cs_installed_using[]" class="form-input">Lock-Off</label>
+                             <label class="checkbox-label"><input type="checkbox" name="cs_installed_using[]" class="form-input">Integrated Seat</label>
+                             <label class="checkbox-label"><input type="checkbox" name="cs_installed_using[]" class="form-input">Load Leg</label>
+                         </div>
+                    </div>
+                    <div>
+                        <p class="tiny-text font-bold">10. CS Harness Correct</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_harness_correct" class="form-input">Yes <input type="radio" name="cs_harness_correct" class="form-input ml-2">No <input type="radio" name="cs_harness_correct" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text">*If no, select all that apply.</p>
+                        <div class="tiny-text">
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Twisted</label>
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Too Loose</label>
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Retainer Clip</label>
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Shoulder Harness Height</label>
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Buckle Strap Position</label>
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Damaged/Altered</label>
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Not Used</label>
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Splitter Plate: Incorrect Loop</label>
+                            <label class="checkbox-label"><input type="checkbox" name="cs_harness_issues[]" class="form-input">Other:</label>
+                        </div>
+                        <p class="tiny-text font-bold mt-2">12. Recline Angle Correct</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="recline_angle_correct" class="form-input">Yes <input type="radio" name="recline_angle_correct" class="form-input ml-2">No <input type="radio" name="recline_angle_correct" class="form-input ml-2">N/A</label>
+                         <p class="tiny-text">*If no, select misuse.</p>
+                         <div class="tiny-text">
+                             <label class="checkbox-label"><input type="radio" name="recline_angle_issue" class="form-input">Too Upright</label>
+                             <label class="checkbox-label"><input type="radio" name="recline_angle_issue" class="form-input">Too Reclined</label>
+                         </div>
+                    </div>
+                    <div>
+                        <p class="tiny-text font-bold">13. Lower Anchors Correct</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="lower_anchors_correct" class="form-input">Yes <input type="radio" name="lower_anchors_correct" class="form-input ml-2">No <input type="radio" name="lower_anchors_correct" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text">*If no, select all that apply.</p>
+                        <div class="tiny-text">
+                            <label class="checkbox-label"><input type="checkbox" name="lower_anchors_issues[]" class="form-input">Non-approved Lower Anchors</label>
+                            <label class="checkbox-label"><input type="checkbox" name="lower_anchors_issues[]" class="form-input">Exceeds Weight Limit</label>
+                            <label class="checkbox-label"><input type="checkbox" name="lower_anchors_issues[]" class="form-input">Twisted</label>
+                            <label class="checkbox-label"><input type="checkbox" name="lower_anchors_issues[]" class="form-input">Misrouted</label>
+                            <label class="checkbox-label"><input type="checkbox" name="lower_anchors_issues[]" class="form-input">Connector Upside Down</label>
+                            <label class="checkbox-label"><input type="checkbox" name="lower_anchors_issues[]" class="form-input">Too Loose</label>
+                            <label class="checkbox-label"><input type="checkbox" name="lower_anchors_issues[]" class="form-input">Used with Seat Belt</label>
+                            <label class="checkbox-label"><input type="checkbox" name="lower_anchors_issues[]" class="form-input">Other:</label>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="tiny-text font-bold">14. Seat Belt Correct</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="seat_belt_correct" class="form-input">Yes <input type="radio" name="seat_belt_correct" class="form-input ml-2">No <input type="radio" name="seat_belt_correct" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text">*If no, select all that apply.</p>
+                        <div class="tiny-text">
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Used with Lower Anchors</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Too Loose</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Retractor Not Locked</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Lock-off Misused/Not Used</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Misrouted</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Locking Clip Misused</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Seat Belt Fit (for child in booster)</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Twisted</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">CS Tilted</label>
+                             <label class="checkbox-label"><input type="checkbox" name="seat_belt_issues[]" class="form-input">Other:</label>
+                        </div>
+                        <p class="tiny-text font-bold mt-2">15. Tether Correct</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="tether_correct" class="form-input">Yes <input type="radio" name="tether_correct" class="form-input ml-2">No <input type="radio" name="tether_correct" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text">*If no, select all that apply.</p>
+                        <div class="tiny-text">
+                             <label class="checkbox-label"><input type="checkbox" name="tether_issues[]" class="form-input">Too Loose</label>
+                             <label class="checkbox-label"><input type="checkbox" name="tether_issues[]" class="form-input">Misrouted</label>
+                             <label class="checkbox-label"><input type="checkbox" name="tether_issues[]" class="form-input">Not Used</label>
+                             <label class="checkbox-label"><input type="checkbox" name="tether_issues[]" class="form-input">Non-approved Tether Anchor</label>
+                             <label class="checkbox-label"><input type="checkbox" name="tether_issues[]" class="form-input">Twisted</label>
+                             <label class="checkbox-label"><input type="checkbox" name="tether_issues[]" class="form-input">Tether Connector Upside Down</label>
+                             <label class="checkbox-label"><input type="checkbox" name="tether_issues[]" class="form-input">Exceeds Weight Limit</label>
+                             <label class="checkbox-label"><input type="checkbox" name="tether_issues[]" class="form-input">Other:</label>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="tiny-text font-bold">Are these features used correctly?</p>
+                        <p class="tiny-text font-bold">16. Carry Handle Position</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="handle_position" class="form-input">Yes <input type="radio" name="handle_position" class="form-input ml-2">No <input type="radio" name="handle_position" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text font-bold">17. Load Leg</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="load_leg" class="form-input">Yes <input type="radio" name="load_leg" class="form-input ml-2">No <input type="radio" name="load_leg" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text font-bold">18. Anti-Rebound Bar</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="anti_rebound_bar" class="form-input">Yes <input type="radio" name="anti_rebound_bar" class="form-input ml-2">No <input type="radio" name="anti_rebound_bar" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text font-bold mt-2">19. Are there non-approved products?</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="non_approved_products" class="form-input">Yes <input type="radio" name="non_approved_products" class="form-input ml-2">No</label>
+                         <p class="tiny-text font-bold mt-2">20. CS Correct Direction Per MFR's Instructions</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_correct_direction" class="form-input">Yes <input type="radio" name="cs_correct_direction" class="form-input ml-2">No <input type="radio" name="cs_correct_direction" class="form-input ml-2">N/A</label>
+                        <p class="tiny-text font-bold mt-2">21. CS Installed Per MFR's Instructions</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_installed_per_mfr" class="form-input">Yes <input type="radio" name="cs_installed_per_mfr" class="form-input ml-2">No <input type="radio" name="cs_installed_per_mfr" class="form-input ml-2">Unknown</label>
+                        <p class="tiny-text font-bold mt-2">22. CS Correct for Child Age, Weight, and Height per MFR's Instructions</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_correct_for_child" class="form-input">Yes <input type="radio" name="cs_correct_for_child" class="form-input ml-2">No <input type="radio" name="cs_correct_for_child" class="form-input ml-2">Unknown</label>
+                         <p class="tiny-text font-bold mt-2">23. CS Correct Per State's Law</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_correct_per_law" class="form-input">Yes <input type="radio" name="cs_correct_per_law" class="form-input ml-2">No <input type="radio" name="cs_correct_per_law" class="form-input ml-2">N/A</label>
+                    </div>
+                    <div>
+                        <p class="tiny-text font-bold">24. CS Labels Missing</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_labels_missing" class="form-input">Yes <input type="radio" name="cs_labels_missing" class="form-input ml-2">No</label>
+                        <div class="mt-2"><input type="text" class="input-field"><label class="tiny-text">25. CS MFR</label></div>
+                        <div class="mt-2"><input type="text" class="input-field"><label class="tiny-text">26. Model Name</label></div>
+                        <div class="mt-2"><input type="text" class="input-field"><label class="tiny-text">27. Model Number</label></div>
+                        <div class="mt-2"><input type="text" class="input-field"><label class="tiny-text">28. MFR Date (MM/DD/YYYY)</label></div>
+                        <div class="mt-2"><input type="text" class="input-field"><label class="tiny-text">29. Expiration Date (MM/DD/YYYY)</label></div>
+                        <p class="tiny-text font-bold mt-2">30. CS Expired</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_expired" class="form-input">Yes <input type="radio" name="cs_expired" class="form-input ml-2">No <input type="radio" name="cs_expired" class="form-input ml-2">Unknown</label>
+                        <p class="tiny-text font-bold mt-2">31. CS Recalled</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_recalled" class="form-input">Yes <input type="radio" name="cs_recalled" class="form-input ml-2">No <input type="radio" name="cs_recalled" class="form-input ml-2">Unknown</label>
+                        <p class="tiny-text font-bold mt-2">32. CS History Known</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_history_known" class="form-input">Yes <input type="radio" name="cs_history_known" class="form-input ml-2">No <input type="radio" name="cs_history_known" class="form-input ml-2">Unknown</label>
+                        <p class="tiny-text font-bold mt-2">33. CS Involved in Crash</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_in_crash" class="form-input">Yes <input type="radio" name="cs_in_crash" class="form-input ml-2">No <input type="radio" name="cs_in_crash" class="form-input ml-2">Unknown</label>
+                        <p class="tiny-text font-bold mt-2">34. CS Registered</p>
+                        <label class="checkbox-label small-text"><input type="radio" name="cs_registered" class="form-input">Yes <input type="radio" name="cs_registered" class="form-input ml-2">No <input type="radio" name="cs_registered" class="form-input ml-2">Unknown</label>
+                    </div>
+                 </div>
+            </div>
+
+            <div class="section">
+                 <div class="section-title">ON DEPARTURE</div>
+                 <div class="grid-2-col">
+                    <div>
+                        <p class="tiny-text font-bold">35. Child/CS Location in Vehicle</p>
+                         <div class="flex-grid tiny-text">
+                           <div><label class="checkbox-label"><input type="radio" name="dep_location" class="form-input">Front Row</label></div>
+                           <div><label class="checkbox-label"><input type="radio" name="dep_location" class="form-input">2nd Row</label></div>
+                           <div><label class="checkbox-label"><input type="radio" name="dep_location" class="form-input">3rd Row</label></div>
+                           <div><label class="checkbox-label"><input type="radio" name="dep_location" class="form-input">4th Row</label></div>
+                           <div><label class="checkbox-label"><input type="radio" name="dep_location" class="form-input">Demonstration Only</label></div>
+                        </div>
+                        <p class="tiny-text font-bold mt-2">36. Restraint Type</p>
+                        <div class="tiny-text">
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">RF Only without Base</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">RF Only with Base</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">Base Only</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">RF Convertible</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">FF with Harness</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">High Back Booster</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">Backless Booster</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">Specialized Restraint</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">Vest</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">No CS</label>
+                             <label class="checkbox-label"><input type="radio" name="dep_restraint_type" class="form-input">No Child Present</label>
+                        </div>
+                        <p class="tiny-text font-bold mt-2">37. Child Secured Using</p>
+                         <div class="tiny-text">
+                            <label class="checkbox-label"><input type="radio" name="dep_child_secured" class="form-input">CS Harness</label>
+                            <label class="checkbox-label"><input type="radio" name="dep_child_secured" class="form-input">Lap-and-Shoulder Belt</label>
+                            <label class="checkbox-label"><input type="radio" name="dep_child_secured" class="form-input">Lap Belt</label>
+                         </div>
+                    </div>
+                    <div>
+                        <p class="tiny-text font-bold">38. CS Installed Using</p>
+                         <p class="tiny-text">*Select all that apply.</p>
+                         <div class="tiny-text">
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">Uninstalled (Skip to #47)</label>
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">Lower Anchors</label>
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">Tether</label>
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">Lap-and-Shoulder Belt</label>
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">Lap Belt</label>
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">Lock-Off</label>
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">Integrated Seat</label>
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">Load Leg</label>
+                             <label class="checkbox-label"><input type="checkbox" name="dep_installed_using[]" class="form-input">No CS (Skip to #47)</label>
+                         </div>
+                    </div>
+                 </div>
+                 <div class="grid-2-col border-t border-black mt-2 pt-2">
+                    <div class="tiny-text">
+                        <p class="font-bold">39. Is this the same CS as 'On Arrival'?</p>
+                        <label class="checkbox-label"><input type="radio" name="same_cs_as_arrival" class="form-input">Yes (Skip to #45) <input type="radio" name="same_cs_as_arrival" class="form-input ml-2">No</label>
+                        <p class="mt-1">39a. If no, CS provided by:</p><input type="text" class="input-field">
+                    </div>
+                    <div class="tiny-text">
+                        <div><input type="text" class="input-field"><label>40. CS MFR</label></div>
+                        <div class="mt-1"><input type="text" class="input-field"><label>41. Model Name</label></div>
+                        <div class="mt-1"><input type="text" class="input-field"><label>42. Model Number</label></div>
+                        <div class="mt-1"><input type="text" class="input-field"><label>43. MFR Date (MM/DD/YYYY)</label></div>
+                        <div class="mt-1"><input type="text" class="input-field"><label>44. Expiration Date (MM/DD/YYYY)</label></div>
+                    </div>
+                 </div>
+                  <div class="grid-2-col border-t border-black mt-2 pt-2">
+                     <div class="tiny-text">
+                        <p class="font-bold">45. CS Registered for Recalls By</p>
+                        <label class="checkbox-label"><input type="radio" name="cs_registered_by" class="form-input">Agency <input type="radio" name="cs_registered_by" class="form-input ml-2">Caregiver <input type="radio" name="cs_registered_by" class="form-input ml-2">N/A</label>
+                        <p class="font-bold mt-2">46. Is the CS compatible with the vehicle?</p>
+                        <label class="checkbox-label"><input type="radio" name="cs_compatible" class="form-input">Yes</label>
+                        <label class="checkbox-label"><input type="radio" name="cs_compatible" class="form-input">Yes, with difficulty</label>
+                        <label class="checkbox-label"><input type="radio" name="cs_compatible" class="form-input">No, need different CS</label>
+                        <p class="font-bold mt-2">47. Child/CS Correct on Departure</p>
+                        <label class="checkbox-label"><input type="radio" name="cs_correct_departure" class="form-input">Yes <input type="radio" name="cs_correct_departure" class="form-input ml-2">No (If no, document.) <input type="radio" name="cs_correct_departure" class="form-input ml-2">N/A</label>
+                     </div>
+                     <div class="tiny-text">
+                         <p class="font-bold">46a. What difficulties did you encounter?</p>
+                         <label class="checkbox-label"><input type="checkbox" name="cs_compatible_difficulties[]" class="form-input">Lower Anchor Issues (e.g., accessibility, interaction with seat belt, length, inflexible)</label>
+                         <label class="checkbox-label"><input type="checkbox" name="cs_compatible_difficulties[]" class="form-input">Tether Issues (e.g., length, width, accessibility, availability)</label>
+                         <label class="checkbox-label"><input type="checkbox" name="cs_compatible_difficulties[]" class="form-input">Recline Angle Issues</label>
+                         <label class="checkbox-label"><input type="checkbox" name="cs_compatible_difficulties[]" class="form-input">Vehicle Seat Issues (e.g., angle, width, depth, head restraint, obstructions)</label>
+                         <label class="checkbox-label"><input type="checkbox" name="cs_compatible_difficulties[]" class="form-input">Seat Belt Issues (e.g., belt path, buckle stalk, angle/length, location, inflatable belt, too short)</label>
+                         <label class="checkbox-label"><input type="checkbox" name="cs_compatible_difficulties[]" class="form-input">Load Leg Issues</label>
+                         <label class="checkbox-label"><input type="checkbox" name="cs_compatible_difficulties[]" class="form-input">Insufficient Space</label>
+                         <label class="checkbox-label"><input type="checkbox" name="cs_compatible_difficulties[]" class="form-input">Other:</label>
+                     </div>
+                  </div>
+            </div>
+            
+            <div class="bordered-box text-xs mt-2">
+                <p class="font-bold text-center">TECHNICIAN DISCUSSED</p>
+                <div class="grid grid-cols-4 gap-x-4 gap-y-2 mt-2">
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">vehicle recall</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">airbags</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">unused seat belts</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">projectiles</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">premature transition</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">heatstroke</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">next steps</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">best practice vs. state law</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">safety in and around cars</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">CS recycled</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">bulky clothing</label>
+                    <label class="checkbox-label tiny-text"><input type="checkbox" name="discussed[]" class="form-input">safe sleep</label>
+                </div>
+            </div>
+            
+             <div class="grid-2-col text-xs">
+                <div class="bordered-box">
+                    <p class="font-bold text-center">CAREGIVER SIGN OFF <span class="font-normal">Virtual</span></p>
+                    <p class="mt-1">48. I harnessed a child/doll in the child seat.</p>
+                    <label class="checkbox-label"><input type="radio" name="harnessed_doll" class="form-input">Yes <input type="radio" name="harnessed_doll" class="form-input ml-2">No <input type="radio" name="harnessed_doll" class="form-input ml-2">N/A</label>
+                    <p class="mt-1">49. I installed my car seat today.</p>
+                     <label class="checkbox-label"><input type="radio" name="installed_cs_today" class="form-input">Yes <input type="radio" name="installed_cs_today" class="form-input ml-2">No <input type="radio" name="installed_cs_today" class="form-input ml-2">N/A</label>
+                     <div class="relative mt-2 w-1/2">
+                        <img id="initials-image" class="hidden w-full h-8 object-contain border-b border-black">
+                        <button type="button" id="initials-sign-button" class="w-full text-left py-1 border-b border-black text-xs">Click to Initial</button>
+                     </div>
+                     <label class="tiny-text">50. Caregiver's Initials</label>
+                </div>
+                <div class="bordered-box">
+                    <p class="font-bold text-center">FINAL INSPECTION</p>
+                    <p class="mt-1">51. Caregiver Donation</p>
+                    <label class="checkbox-label"><input type="radio" name="caregiver_donation" class="form-input">Yes <input type="radio" name="caregiver_donation" class="form-input ml-2">No</label>
+                    <p class="mt-1">52. Educational materials given?</p>
+                     <label class="checkbox-label"><input type="radio" name="edu_materials_given" class="form-input">Yes <input type="radio" name="edu_materials_given" class="form-input ml-2">No</label>
+                    <div class="relative mt-2">
+                        <img id="final-inspection-image" class="hidden w-full h-8 object-contain border-b border-black">
+                        <button type="button" id="final-inspection-sign-button" class="w-full text-left py-1 border-b border-black text-xs">Click to Sign</button>
+                    </div>
+                     <label class="tiny-text">53. Final Inspection Sign Off</label>
+                </div>
+             </div>
+             
+             <div class="bordered-box text-xs mt-2">
+                <p>54. Is this CS for recertification? <label class="checkbox-label inline-flex ml-2"><input type="radio" name="cs_for_recert" class="form-input">Yes <input type="radio" name="cs_for_recert" class="form-input ml-2">No</label></p>
+                 <p class="mt-1">54a. If yes, Pass (<input type="radio" name="recert_result" class="form-input inline-block align-middle">) Fail (<input type="radio" name="recert_result" class="form-input inline-block align-middle ml-2">)</p>
+                 <p class="mt-1">54b. Mock Seat Check? <label class="checkbox-label inline-flex ml-2"><input type="radio" name="mock_seat_check" class="form-input">Yes <input type="radio" name="mock_seat_check" class="form-input ml-2">No</label></p>
+             </div>
+
+            <div class="bordered-box mt-2 flex-grow">
+                <label>Documentation Box:</label>
+                <textarea class="w-full h-24 border border-gray-300 p-1"></textarea>
+            </div>
+            
+            <div id="action-buttons" class="mt-6 text-center">
+                 <button id="complete-archive-btn" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700">Complete & Archive Form</button>
+            </div>
+
+
+        </div>
+    </div>
+    
+    <!-- Signature Modal -->
+    <div id="signature-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-4 rounded-lg shadow-lg w-full max-w-md">
+            <h3 class="text-lg font-bold mb-2">Please Sign Below</h3>
+            <div id="signature-pad-container">
+                <canvas id="signature-canvas" class="w-full h-full"></canvas>
+            </div>
+            <div class="flex justify-end space-x-2 mt-4">
+                <button id="clear-signature" class="px-4 py-2 bg-gray-300 rounded">Clear</button>
+                <button id="save-signature" class="px-4 py-2 bg-blue-500 text-white rounded">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('signature-modal');
+            
+            // Signature Fields
+            const signButton = document.getElementById('sign-button');
+            const signatureImage = document.getElementById('signature-image');
+            const initialsSignButton = document.getElementById('initials-sign-button');
+            const initialsImage = document.getElementById('initials-image');
+            const finalInspectionSignButton = document.getElementById('final-inspection-sign-button');
+            const finalInspectionImage = document.getElementById('final-inspection-image');
+
+            // Modal Elements
+            const clearButton = document.getElementById('clear-signature');
+            const saveButton = document.getElementById('save-signature');
+            const canvas = document.getElementById('signature-canvas');
+            const signaturePadContainer = document.getElementById('signature-pad-container');
+            
+            let signaturePad;
+            let currentSignatureTarget = null;
+            let isArchived = false;
+
+            function resizeCanvas() {
+                const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = signaturePadContainer.offsetWidth * ratio;
+                canvas.height = signaturePadContainer.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                if (signaturePad) {
+                    signaturePad.clear(); // Clear signature on resize
+                }
+            }
+
+            function openSignatureModal(target) {
+                if (isArchived) return; // Don't open modal for archived forms
+                currentSignatureTarget = target;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                resizeCanvas();
+                if (!signaturePad) {
+                   signaturePad = new SignaturePad(canvas);
+                } else {
+                    signaturePad.clear();
+                }
+            }
+            
+            signButton.addEventListener('click', () => openSignatureModal({ image: signatureImage, button: signButton }));
+            initialsSignButton.addEventListener('click', () => openSignatureModal({ image: initialsImage, button: initialsSignButton }));
+            finalInspectionSignButton.addEventListener('click', () => openSignatureModal({ image: finalInspectionImage, button: finalInspectionSignButton }));
+
+            clearButton.addEventListener('click', () => {
+                if (signaturePad) {
+                    signaturePad.clear();
+                }
+            });
+
+            saveButton.addEventListener('click', () => {
+                if (signaturePad && !signaturePad.isEmpty() && currentSignatureTarget) {
+                    const dataURL = signaturePad.toDataURL();
+                    currentSignatureTarget.image.src = dataURL;
+                    currentSignatureTarget.image.classList.remove('hidden');
+                    currentSignatureTarget.button.classList.add('hidden');
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    currentSignatureTarget = null;
+                }
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    currentSignatureTarget = null;
+                }
+            });
+            
+            window.addEventListener('resize', resizeCanvas);
+
+            // Prefill logic
+            function loadInitialData() {
+                const submissionId = sessionStorage.getItem('selectedSubmissionId');
+                if (!submissionId) return;
+
+                const submissions = JSON.parse(localStorage.getItem('carSeatSubmissions')) || [];
+                const data = submissions.find(s => s.id === submissionId);
+
+                if (!data) {
+                    alert('Could not find the selected submission.');
+                    return;
+                }
+
+                // Load prefill data
+                const prefill = data.prefillData || {};
+                document.getElementById('first-name').value = prefill.firstName || '';
+                document.getElementById('last-name').value = prefill.lastName || '';
+                document.getElementById('address').value = prefill.address || '';
+                document.getElementById('city').value = prefill.city || '';
+                document.getElementById('state').value = prefill.state || '';
+                document.getElementById('zip').value = prefill.zip || '';
+                document.getElementById('county').value = prefill.county || '';
+                document.getElementById('phone').value = prefill.phone || '';
+                document.getElementById('email').value = prefill.email || '';
+                document.getElementById('vehicle-make').value = prefill.vehicleMake || '';
+                document.getElementById('vehicle-model').value = prefill.vehicleModel || '';
+                document.getElementById('vehicle-year').value = prefill.vehicleYear || '';
+
+                if (prefill.signature) {
+                    signatureImage.src = prefill.signature;
+                    signatureImage.classList.remove('hidden');
+                    signButton.style.display = 'none'; 
+                }
+                
+                // If the form is archived, load tech data and disable fields
+                if (data.status === 'archived') {
+                    isArchived = true;
+                    document.getElementById('action-buttons').innerHTML = '<p class="text-center text-lg font-bold text-blue-600">This form is archived (Read-Only).</p>';
+                    // You would expand this to load and display all the tech-filled data
+                    // and disable all form inputs.
+                    const allInputs = document.querySelectorAll('input, textarea, select, button');
+                    allInputs.forEach(input => {
+                        if(input.type !== 'radio' && input.type !== 'checkbox') {
+                           input.setAttribute('readonly', 'true');
+                        } else {
+                           input.setAttribute('disabled', 'true');
+                        }
+                    });
+                     signButton.style.display = 'none';
+                     initialsSignButton.style.display = 'none';
+                     finalInspectionSignButton.style.display = 'none';
+                }
+            }
+
+            document.getElementById('complete-archive-btn').addEventListener('click', () => {
+                const submissionId = sessionStorage.getItem('selectedSubmissionId');
+                if (!submissionId) {
+                    alert('No submission is open.');
+                    return;
+                }
+                if (!confirm('Are you sure you want to complete and archive this form? This cannot be undone.')) {
+                    return;
+                }
+
+                let submissions = JSON.parse(localStorage.getItem('carSeatSubmissions')) || [];
+                const submissionIndex = submissions.findIndex(s => s.id === submissionId);
+                
+                if (submissionIndex === -1) {
+                    alert('Error: Could not find submission to archive.');
+                    return;
+                }
+
+                // In a real app, you would gather all technician-entered data here
+                // For this example, we'll just mark it as archived.
+                submissions[submissionIndex].status = 'archived';
+                submissions[submissionIndex].timestamp = new Date().toLocaleString(); // Update timestamp to reflect archive time
+                
+                // Example of adding some tech data
+                submissions[submissionIndex].techData = {
+                    technicianNotes: "Form completed and archived.",
+                    finalInspectionSignOff: finalInspectionImage.src // just an example
+                };
+
+                localStorage.setItem('carSeatSubmissions', JSON.stringify(submissions));
+
+                alert('Form has been successfully archived!');
+                window.close(); // Close the tab
+            });
+
+            loadInitialData();
+        });
+    </script>
+</body>
+</html>
+

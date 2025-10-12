@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archived Forms Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Arial&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f3f4f6; }
+        .viewer-container { max-width: 1280px; margin: 2rem auto; padding: 2rem; background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .archive-item { border-bottom: 1px solid #e5e7eb; padding: 0.75rem 0.5rem; cursor: pointer; transition: background-color 0.2s; }
+        .archive-item:hover { background-color: #f9fafb; }
+        .archive-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="viewer-container">
+        <div class="flex justify-between items-center border-b pb-4 mb-4">
+            <h1 class="text-2xl font-bold">Archived Forms</h1>
+            <div>
+                <a href="tech_dashboard.html" class="text-blue-600 hover:underline mr-4">&larr; Back to Dashboard</a>
+                <select id="sort-select" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="date-desc">Sort by Date (Newest First)</option>
+                    <option value="date-asc">Sort by Date (Oldest First)</option>
+                    <option value="name-asc">Sort by Name (A-Z)</option>
+                    <option value="name-desc">Sort by Name (Z-A)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="archive-list" class="space-y-1">
+            <!-- Archived submissions will be dynamically inserted here -->
+        </div>
+        <p id="no-archives" class="text-center text-gray-500 py-8 hidden">No archived forms found.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const listContainer = document.getElementById('archive-list');
+            const noArchivesMessage = document.getElementById('no-archives');
+            const sortSelect = document.getElementById('sort-select');
+
+            function loadArchives() {
+                listContainer.innerHTML = '';
+                let archives = JSON.parse(localStorage.getItem('carSeatSubmissions')) || [];
+                archives = archives.filter(s => s.status === 'archived');
+                
+                // Sorting logic
+                const sortValue = sortSelect.value;
+                archives.sort((a, b) => {
+                    switch(sortValue) {
+                        case 'date-asc':
+                            return new Date(a.timestamp) - new Date(b.timestamp);
+                        case 'name-asc':
+                            return a.prefillData.lastName.localeCompare(b.prefillData.lastName);
+                        case 'name-desc':
+                            return b.prefillData.lastName.localeCompare(a.prefillData.lastName);
+                        case 'date-desc':
+                        default:
+                            return new Date(b.timestamp) - new Date(a.timestamp);
+                    }
+                });
+
+
+                if (archives.length === 0) {
+                    noArchivesMessage.classList.remove('hidden');
+                } else {
+                    noArchivesMessage.classList.add('hidden');
+                    archives.forEach(sub => {
+                        const item = document.createElement('div');
+                        item.className = 'archive-item grid grid-cols-4 gap-4 items-center';
+                        item.dataset.submissionId = sub.id;
+                        item.innerHTML = `
+                            <p class="font-semibold col-span-1">${sub.prefillData.firstName} ${sub.prefillData.lastName}</p>
+                            <p class="text-sm text-gray-600 col-span-1">${sub.prefillData.vehicleMake} ${sub.prefillData.vehicleModel}</p>
+                            <p class="text-sm text-gray-500 col-span-1">Archived: ${sub.timestamp}</p>
+                             <div class="col-span-1 text-right"><button data-action="view" class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">View</button></div>
+                        `;
+                        listContainer.appendChild(item);
+                    });
+                }
+            }
+            
+            listContainer.addEventListener('click', (e) => {
+                 if (e.target.dataset.action === 'view') {
+                    const submissionId = e.target.closest('.archive-item').dataset.submissionId;
+                    sessionStorage.setItem('selectedSubmissionId', submissionId);
+                    window.open('car_seat_form.html', '_blank');
+                 }
+            });
+
+            sortSelect.addEventListener('change', loadArchives);
+
+            loadArchives();
+        });
+    </script>
+</body>
+</html>
