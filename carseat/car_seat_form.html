@@ -6,15 +6,14 @@
     <title>Car Seat Check Form v.7.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Arial&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
             color: #000;
-            background-color: #f3f4f6; /* gray-100 for a lighter background */
+            background-color: #f3f4f6; 
         }
         .form-container {
-            max-width: 8.5in; /* Standard page width for readability */
+            max-width: 8.5in; 
             margin: 2rem auto;
         }
         .form-page {
@@ -601,174 +600,167 @@ site owner, from any present or future liability for any injuries or damages tha
         </div>
     </div>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('signature-modal');
-            
-            // Signature Fields
-            const signButton = document.getElementById('sign-button');
-            const signatureImage = document.getElementById('signature-image');
-            const initialsSignButton = document.getElementById('initials-sign-button');
-            const initialsImage = document.getElementById('initials-image');
-            const finalInspectionSignButton = document.getElementById('final-inspection-sign-button');
-            const finalInspectionImage = document.getElementById('final-inspection-image');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUL5Jqos4G9uBXJKbMAiZWpxOZLdANR7g",
+            authDomain: "stfdcarseat-form.firebaseapp.com",
+            projectId: "stfdcarseat-form",
+            storageBucket: "stfdcarseat-form.firebasestorage.app",
+            messagingSenderId: "850834336483",
+            appId: "1:850834336483:web:17061e6c726a2b8b8273d6",
+            measurementId: "G-KEMHHLTQKC"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        await signInAnonymously(auth);
 
-            // Modal Elements
-            const clearButton = document.getElementById('clear-signature');
-            const saveButton = document.getElementById('save-signature');
-            const canvas = document.getElementById('signature-canvas');
-            const signaturePadContainer = document.getElementById('signature-pad-container');
-            
-            let signaturePad;
-            let currentSignatureTarget = null;
-            let isArchived = false;
+        // All the existing DOM element selections and signature pad logic remains the same...
+        const modal = document.getElementById('signature-modal');
+        const signButton = document.getElementById('sign-button');
+        const signatureImage = document.getElementById('signature-image');
+        const initialsSignButton = document.getElementById('initials-sign-button');
+        const initialsImage = document.getElementById('initials-image');
+        const finalInspectionSignButton = document.getElementById('final-inspection-sign-button');
+        const finalInspectionImage = document.getElementById('final-inspection-image');
+        const clearButton = document.getElementById('clear-signature');
+        const saveButton = document.getElementById('save-signature');
+        const canvas = document.getElementById('signature-canvas');
+        const signaturePadContainer = document.getElementById('signature-pad-container');
+        
+        let signaturePad;
+        let currentSignatureTarget = null;
+        let isArchived = false;
 
-            function resizeCanvas() {
-                const ratio =  Math.max(window.devicePixelRatio || 1, 1);
-                canvas.width = signaturePadContainer.offsetWidth * ratio;
-                canvas.height = signaturePadContainer.offsetHeight * ratio;
-                canvas.getContext("2d").scale(ratio, ratio);
-                if (signaturePad) {
-                    signaturePad.clear(); // Clear signature on resize
-                }
+        function resizeCanvas() {
+            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = signaturePadContainer.offsetWidth * ratio;
+            canvas.height = signaturePadContainer.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            if (signaturePad) { signaturePad.clear(); }
+        }
+
+        function openSignatureModal(target) {
+            if (isArchived) return; 
+            currentSignatureTarget = target;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            resizeCanvas();
+            if (!signaturePad) { signaturePad = new SignaturePad(canvas); } 
+            else { signaturePad.clear(); }
+        }
+        
+        signButton.addEventListener('click', () => openSignatureModal({ image: signatureImage, button: signButton }));
+        initialsSignButton.addEventListener('click', () => openSignatureModal({ image: initialsImage, button: initialsSignButton }));
+        finalInspectionSignButton.addEventListener('click', () => openSignatureModal({ image: finalInspectionImage, button: finalInspectionSignButton }));
+        clearButton.addEventListener('click', () => { if (signaturePad) { signaturePad.clear(); } });
+        saveButton.addEventListener('click', () => {
+            if (signaturePad && !signaturePad.isEmpty() && currentSignatureTarget) {
+                currentSignatureTarget.image.src = signaturePad.toDataURL();
+                currentSignatureTarget.image.classList.remove('hidden');
+                currentSignatureTarget.button.classList.add('hidden');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                currentSignatureTarget = null;
             }
-
-            function openSignatureModal(target) {
-                if (isArchived) return; // Don't open modal for archived forms
-                currentSignatureTarget = target;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                resizeCanvas();
-                if (!signaturePad) {
-                   signaturePad = new SignaturePad(canvas);
-                } else {
-                    signaturePad.clear();
-                }
-            }
-            
-            signButton.addEventListener('click', () => openSignatureModal({ image: signatureImage, button: signButton }));
-            initialsSignButton.addEventListener('click', () => openSignatureModal({ image: initialsImage, button: initialsSignButton }));
-            finalInspectionSignButton.addEventListener('click', () => openSignatureModal({ image: finalInspectionImage, button: finalInspectionSignButton }));
-
-            clearButton.addEventListener('click', () => {
-                if (signaturePad) {
-                    signaturePad.clear();
-                }
-            });
-
-            saveButton.addEventListener('click', () => {
-                if (signaturePad && !signaturePad.isEmpty() && currentSignatureTarget) {
-                    const dataURL = signaturePad.toDataURL();
-                    currentSignatureTarget.image.src = dataURL;
-                    currentSignatureTarget.image.classList.remove('hidden');
-                    currentSignatureTarget.button.classList.add('hidden');
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                    currentSignatureTarget = null;
-                }
-            });
-
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                    currentSignatureTarget = null;
-                }
-            });
-            
-            window.addEventListener('resize', resizeCanvas);
-
-            // Prefill logic
-            function loadInitialData() {
-                const submissionId = sessionStorage.getItem('selectedSubmissionId');
-                if (!submissionId) return;
-
-                const submissions = JSON.parse(localStorage.getItem('carSeatSubmissions')) || [];
-                const data = submissions.find(s => s.id === submissionId);
-
-                if (!data) {
-                    alert('Could not find the selected submission.');
-                    return;
-                }
-
-                // Load prefill data
-                const prefill = data.prefillData || {};
-                document.getElementById('first-name').value = prefill.firstName || '';
-                document.getElementById('last-name').value = prefill.lastName || '';
-                document.getElementById('address').value = prefill.address || '';
-                document.getElementById('city').value = prefill.city || '';
-                document.getElementById('state').value = prefill.state || '';
-                document.getElementById('zip').value = prefill.zip || '';
-                document.getElementById('county').value = prefill.county || '';
-                document.getElementById('phone').value = prefill.phone || '';
-                document.getElementById('email').value = prefill.email || '';
-                document.getElementById('vehicle-make').value = prefill.vehicleMake || '';
-                document.getElementById('vehicle-model').value = prefill.vehicleModel || '';
-                document.getElementById('vehicle-year').value = prefill.vehicleYear || '';
-
-                if (prefill.signature) {
-                    signatureImage.src = prefill.signature;
-                    signatureImage.classList.remove('hidden');
-                    signButton.style.display = 'none'; 
-                }
-                
-                // If the form is archived, load tech data and disable fields
-                if (data.status === 'archived') {
-                    isArchived = true;
-                    document.getElementById('action-buttons').innerHTML = '<p class="text-center text-lg font-bold text-blue-600">This form is archived (Read-Only).</p>';
-                    // You would expand this to load and display all the tech-filled data
-                    // and disable all form inputs.
-                    const allInputs = document.querySelectorAll('input, textarea, select, button');
-                    allInputs.forEach(input => {
-                        if(input.type !== 'radio' && input.type !== 'checkbox') {
-                           input.setAttribute('readonly', 'true');
-                        } else {
-                           input.setAttribute('disabled', 'true');
-                        }
-                    });
-                     signButton.style.display = 'none';
-                     initialsSignButton.style.display = 'none';
-                     finalInspectionSignButton.style.display = 'none';
-                }
-            }
-
-            document.getElementById('complete-archive-btn').addEventListener('click', () => {
-                const submissionId = sessionStorage.getItem('selectedSubmissionId');
-                if (!submissionId) {
-                    alert('No submission is open.');
-                    return;
-                }
-                if (!confirm('Are you sure you want to complete and archive this form? This cannot be undone.')) {
-                    return;
-                }
-
-                let submissions = JSON.parse(localStorage.getItem('carSeatSubmissions')) || [];
-                const submissionIndex = submissions.findIndex(s => s.id === submissionId);
-                
-                if (submissionIndex === -1) {
-                    alert('Error: Could not find submission to archive.');
-                    return;
-                }
-
-                // In a real app, you would gather all technician-entered data here
-                // For this example, we'll just mark it as archived.
-                submissions[submissionIndex].status = 'archived';
-                submissions[submissionIndex].timestamp = new Date().toLocaleString(); // Update timestamp to reflect archive time
-                
-                // Example of adding some tech data
-                submissions[submissionIndex].techData = {
-                    technicianNotes: "Form completed and archived.",
-                    finalInspectionSignOff: finalInspectionImage.src // just an example
-                };
-
-                localStorage.setItem('carSeatSubmissions', JSON.stringify(submissions));
-
-                alert('Form has been successfully archived!');
-                window.close(); // Close the tab
-            });
-
-            loadInitialData();
         });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                currentSignatureTarget = null;
+            }
+        });
+        window.addEventListener('resize', resizeCanvas);
+
+
+        async function loadInitialData() {
+            const submissionId = sessionStorage.getItem('selectedSubmissionId');
+            if (!submissionId) {
+                 document.getElementById('action-buttons').innerHTML = '<p class="text-center text-lg font-bold text-red-600">No submission selected. Please open from the dashboard.</p>';
+                return;
+            }
+
+            const docRef = doc(db, "carSeatSubmissions", submissionId);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                alert('Could not find the selected submission.');
+                return;
+            }
+            
+            const data = docSnap.data();
+            const prefill = data.prefillData || {};
+            document.getElementById('first-name').value = prefill.firstName || '';
+            document.getElementById('last-name').value = prefill.lastName || '';
+            document.getElementById('address').value = prefill.address || '';
+            document.getElementById('city').value = prefill.city || '';
+            document.getElementById('state').value = prefill.state || '';
+            document.getElementById('zip').value = prefill.zip || '';
+            document.getElementById('county').value = prefill.county || '';
+            document.getElementById('phone').value = prefill.phone || '';
+            document.getElementById('email').value = prefill.email || '';
+            document.getElementById('vehicle-make').value = prefill.vehicleMake || '';
+            document.getElementById('vehicle-model').value = prefill.vehicleModel || '';
+            document.getElementById('vehicle-year').value = prefill.vehicleYear || '';
+
+            if (prefill.signature) {
+                signatureImage.src = prefill.signature;
+                signatureImage.classList.remove('hidden');
+                signButton.style.display = 'none'; 
+            }
+            
+            if (data.status === 'archived') {
+                isArchived = true;
+                document.getElementById('action-buttons').innerHTML = '<p class="text-center text-lg font-bold text-blue-600">This form is archived (Read-Only).</p>';
+                const allInputs = document.querySelectorAll('input, textarea, select, button');
+                allInputs.forEach(input => {
+                    input.disabled = true;
+                });
+                signButton.style.display = 'none';
+                initialsSignButton.style.display = 'none';
+                finalInspectionSignButton.style.display = 'none';
+                 // NOTE: In a real app, you would load all the saved tech data into the fields here.
+            }
+        }
+
+        document.getElementById('complete-archive-btn').addEventListener('click', async () => {
+            const submissionId = sessionStorage.getItem('selectedSubmissionId');
+            if (!submissionId || isArchived) return;
+
+            if (!confirm('Are you sure you want to complete and archive this form?')) return;
+
+            const docRef = doc(db, "carSeatSubmissions", submissionId);
+
+            // In a real app, you would gather all technician-entered data from the form fields
+            const techData = {
+                technicianNotes: "Form completed and archived.",
+                finalInspectionSignOff: finalInspectionImage.src,
+                caregiverInitials: initialsImage.src,
+                // ... gather all other checkbox, radio, and text field values
+            };
+
+            try {
+                await updateDoc(docRef, {
+                    status: 'archived',
+                    timestamp: new Date(),
+                    techData: techData
+                });
+                alert('Form has been successfully archived!');
+                window.close();
+            } catch (error) {
+                console.error("Error archiving document: ", error);
+                alert("Failed to archive the form.");
+            }
+        });
+
+        loadInitialData();
     </script>
 </body>
 </html>

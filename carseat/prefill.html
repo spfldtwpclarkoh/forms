@@ -6,7 +6,6 @@
     <title>Car Seat Check - Caregiver Pre-fill</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Arial&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -119,71 +118,97 @@
         </div>
     </div>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const canvas = document.getElementById('signature-canvas');
-            const signaturePadContainer = document.getElementById('signature-pad-container');
-            const submitButton = document.getElementById('submit-form');
-            const clearButton = document.getElementById('clear-signature');
-            let signaturePad;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-            function resizeCanvas() {
-                const ratio =  Math.max(window.devicePixelRatio || 1, 1);
-                canvas.width = signaturePadContainer.offsetWidth * ratio;
-                canvas.height = signaturePadContainer.offsetHeight * ratio;
-                canvas.getContext("2d").scale(ratio, ratio);
-                if (signaturePad) {
-                    signaturePad.fromData(signaturePad.toData()); // Redraw signature
-                } else {
-                    signaturePad = new SignaturePad(canvas);
-                }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUL5Jqos4G9uBXJKbMAiZWpxOZLdANR7g",
+            authDomain: "stfdcarseat-form.firebaseapp.com",
+            projectId: "stfdcarseat-form",
+            storageBucket: "stfdcarseat-form.firebasestorage.app",
+            messagingSenderId: "850834336483",
+            appId: "1:850834336483:web:17061e6c726a2b8b8273d6",
+            measurementId: "G-KEMHHLTQKC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        signInAnonymously(auth).catch((error) => {
+            console.error("Anonymous sign-in failed:", error);
+        });
+
+        const canvas = document.getElementById('signature-canvas');
+        const signaturePadContainer = document.getElementById('signature-pad-container');
+        const submitButton = document.getElementById('submit-form');
+        const clearButton = document.getElementById('clear-signature');
+        let signaturePad;
+
+        function resizeCanvas() {
+            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = signaturePadContainer.offsetWidth * ratio;
+            canvas.height = signaturePadContainer.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            if (signaturePad) {
+                signaturePad.fromData(signaturePad.toData()); // Redraw signature
+            } else {
+                signaturePad = new SignaturePad(canvas);
+            }
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        clearButton.addEventListener('click', () => {
+            signaturePad.clear();
+        });
+
+        submitButton.addEventListener('click', async () => {
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            
+            if (!firstName || !lastName) {
+                alert('Please enter at least a first and last name.');
+                return;
             }
             
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
 
-            clearButton.addEventListener('click', () => {
-                signaturePad.clear();
-            });
+            const formData = {
+                timestamp: new Date(),
+                status: 'pending',
+                prefillData: {
+                    firstName: firstName,
+                    lastName: lastName,
+                    address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zip: document.getElementById('zip').value,
+                    county: document.getElementById('county').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    vehicleMake: document.getElementById('vehicle-make').value,
+                    vehicleModel: document.getElementById('vehicle-model').value,
+                    vehicleYear: document.getElementById('vehicle-year').value,
+                    signature: signaturePad.isEmpty() ? '' : signaturePad.toDataURL()
+                },
+                techData: {} // Placeholder for technician data
+            };
 
-            submitButton.addEventListener('click', () => {
-                const firstName = document.getElementById('first-name').value;
-                const lastName = document.getElementById('last-name').value;
-                
-                if (!firstName || !lastName) {
-                    alert('Please enter at least a first and last name.');
-                    return;
-                }
-
-                const formData = {
-                    id: `submission-${Date.now()}-${Math.random()}`,
-                    timestamp: new Date().toLocaleString(),
-                    status: 'pending', // Add a status
-                    prefillData: {
-                        firstName: firstName,
-                        lastName: lastName,
-                        address: document.getElementById('address').value,
-                        city: document.getElementById('city').value,
-                        state: document.getElementById('state').value,
-                        zip: document.getElementById('zip').value,
-                        county: document.getElementById('county').value,
-                        phone: document.getElementById('phone').value,
-                        email: document.getElementById('email').value,
-                        vehicleMake: document.getElementById('vehicle-make').value,
-                        vehicleModel: document.getElementById('vehicle-model').value,
-                        vehicleYear: document.getElementById('vehicle-year').value,
-                        signature: signaturePad.isEmpty() ? '' : signaturePad.toDataURL()
-                    },
-                    techData: {} // Placeholder for technician data
-                };
-
-                let submissions = JSON.parse(localStorage.getItem('carSeatSubmissions')) || [];
-                submissions.push(formData);
-                localStorage.setItem('carSeatSubmissions', JSON.stringify(submissions));
-
+            try {
+                await addDoc(collection(db, "carSeatSubmissions"), formData);
                 document.getElementById('form-content').classList.add('hidden');
                 document.getElementById('confirmation-message').classList.remove('hidden');
-            });
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                alert("There was an error submitting your form. Please try again.");
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Form';
+            }
         });
     </script>
 </body>

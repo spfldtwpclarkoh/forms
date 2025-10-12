@@ -54,100 +54,120 @@
     </div>
 
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const listContainer = document.getElementById('submissions-list');
-            const noSubmissionsMessage = document.getElementById('no-submissions');
-            const refreshButton = document.getElementById('refresh-list');
-            const deleteModal = document.getElementById('delete-modal');
-            const cancelDeleteBtn = document.getElementById('cancel-delete');
-            const confirmDeleteBtn = document.getElementById('confirm-delete');
-            let submissionIdToDelete = null;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-            function loadSubmissions() {
-                console.log('Attempting to load submissions...');
-                listContainer.innerHTML = ''; // Clear current list
-                
-                const rawData = localStorage.getItem('carSeatSubmissions');
-                console.log('Raw data from localStorage:', rawData);
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUL5Jqos4G9uBXJKbMAiZWpxOZLdANR7g",
+            authDomain: "stfdcarseat-form.firebaseapp.com",
+            projectId: "stfdcarseat-form",
+            storageBucket: "stfdcarseat-form.firebasestorage.app",
+            messagingSenderId: "850834336483",
+            appId: "1:850834336483:web:17061e6c726a2b8b8273d6",
+            measurementId: "G-KEMHHLTQKC"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-                const submissions = JSON.parse(rawData) || [];
-                console.log('Parsed submissions array:', submissions);
+        await signInAnonymously(auth);
 
-                const pendingSubmissions = submissions.filter(s => s.status === 'pending');
-                console.log(`Found ${pendingSubmissions.length} pending submissions.`);
+        const listContainer = document.getElementById('submissions-list');
+        const noSubmissionsMessage = document.getElementById('no-submissions');
+        const refreshButton = document.getElementById('refresh-list');
+        const deleteModal = document.getElementById('delete-modal');
+        const cancelDeleteBtn = document.getElementById('cancel-delete');
+        const confirmDeleteBtn = document.getElementById('confirm-delete');
+        let submissionIdToDelete = null;
 
-                if (pendingSubmissions.length === 0) {
-                    noSubmissionsMessage.classList.remove('hidden');
-                } else {
-                    noSubmissionsMessage.classList.add('hidden');
-                    pendingSubmissions.forEach(sub => {
-                        const item = document.createElement('div');
-                        item.className = 'submission-item flex justify-between items-center';
-                        item.dataset.submissionId = sub.id;
-                        item.innerHTML = `
-                            <div>
-                                <p class="font-bold text-lg">${sub.prefillData.firstName} ${sub.prefillData.lastName}</p>
-                                <p class="text-sm text-gray-600">Vehicle: ${sub.prefillData.vehicleMake} ${sub.prefillData.vehicleModel} (${sub.prefillData.vehicleYear})</p>
-                                <p class="text-xs text-gray-400 mt-1">Submitted: ${sub.timestamp}</p>
-                            </div>
-                            <div class="flex items-center space-x-2 flex-shrink-0">
-                                <button data-action="open" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">Open</button>
-                                <button data-action="delete" class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">Delete</button>
-                            </div>
-                        `;
-                        listContainer.appendChild(item);
-                    });
-                }
+        function renderSubmissions(submissions) {
+            listContainer.innerHTML = ''; 
+            if (submissions.length === 0) {
+                noSubmissionsMessage.classList.remove('hidden');
+            } else {
+                noSubmissionsMessage.classList.add('hidden');
+                submissions.forEach(sub => {
+                    const item = document.createElement('div');
+                    item.className = 'submission-item flex justify-between items-center';
+                    item.dataset.submissionId = sub.id;
+                    const timestamp = sub.timestamp.toDate ? sub.timestamp.toDate().toLocaleString() : new Date(sub.timestamp).toLocaleString();
+                    item.innerHTML = `
+                        <div>
+                            <p class="font-bold text-lg">${sub.prefillData.firstName} ${sub.prefillData.lastName}</p>
+                            <p class="text-sm text-gray-600">Vehicle: ${sub.prefillData.vehicleMake} ${sub.prefillData.vehicleModel} (${sub.prefillData.vehicleYear})</p>
+                            <p class="text-xs text-gray-400 mt-1">Submitted: ${timestamp}</p>
+                        </div>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <button data-action="open" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">Open</button>
+                            <button data-action="delete" class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600">Delete</button>
+                        </div>
+                    `;
+                    listContainer.appendChild(item);
+                });
             }
-            
-            // Modal handling
-            function openDeleteModal(id) {
-                submissionIdToDelete = id;
-                deleteModal.classList.remove('hidden');
-                deleteModal.classList.add('flex');
-            }
-
-            function closeDeleteModal() {
-                submissionIdToDelete = null;
-                deleteModal.classList.add('hidden');
-                deleteModal.classList.remove('flex');
-            }
-
-            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-
-            confirmDeleteBtn.addEventListener('click', () => {
-                if (submissionIdToDelete) {
-                    let submissions = JSON.parse(localStorage.getItem('carSeatSubmissions')) || [];
-                    submissions = submissions.filter(s => s.id !== submissionIdToDelete);
-                    localStorage.setItem('carSeatSubmissions', JSON.stringify(submissions));
-                    loadSubmissions();
-                }
-                closeDeleteModal();
+        }
+        
+        function setupRealtimeListener() {
+            const q = query(collection(db, "carSeatSubmissions"), where("status", "==", "pending"));
+            onSnapshot(q, (querySnapshot) => {
+                const submissions = [];
+                querySnapshot.forEach((doc) => {
+                    submissions.push({ id: doc.id, ...doc.data() });
+                });
+                renderSubmissions(submissions);
+            }, (error) => {
+                console.error("Error listening for submissions: ", error);
+                alert("Could not fetch real-time data. Please refresh the page.");
             });
+        }
+        
+        function openDeleteModal(id) {
+            submissionIdToDelete = id;
+            deleteModal.classList.remove('hidden');
+            deleteModal.classList.add('flex');
+        }
 
-            listContainer.addEventListener('click', function(e) {
-                const target = e.target;
-                const action = target.dataset.action;
-                if (!action) return;
+        function closeDeleteModal() {
+            submissionIdToDelete = null;
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+        }
 
-                const submissionItem = target.closest('.submission-item');
-                const submissionId = submissionItem.dataset.submissionId;
+        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
 
-                if (action === 'open') {
-                    sessionStorage.setItem('selectedSubmissionId', submissionId);
-                    window.open('car_seat_form.html', `_blank`);
-                } else if (action === 'delete') {
-                    openDeleteModal(submissionId);
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (submissionIdToDelete) {
+                try {
+                    await deleteDoc(doc(db, "carSeatSubmissions", submissionIdToDelete));
+                } catch (error) {
+                    console.error("Error deleting document: ", error);
+                    alert("Failed to delete submission.");
                 }
-            });
-            
-            refreshButton.addEventListener('click', loadSubmissions);
-
-            // Load on page load and also listen for storage changes from other tabs
-            window.addEventListener('storage', loadSubmissions);
-            loadSubmissions();
+            }
+            closeDeleteModal();
         });
+
+        listContainer.addEventListener('click', function(e) {
+            const target = e.target;
+            const action = target.dataset.action;
+            if (!action) return;
+
+            const submissionItem = target.closest('.submission-item');
+            const submissionId = submissionItem.dataset.submissionId;
+
+            if (action === 'open') {
+                sessionStorage.setItem('selectedSubmissionId', submissionId);
+                window.open('car_seat_form.html', `_blank`);
+            } else if (action === 'delete') {
+                openDeleteModal(submissionId);
+            }
+        });
+        
+        refreshButton.addEventListener('click', setupRealtimeListener);
+        setupRealtimeListener(); // Initial load
     </script>
 </body>
 </html>
