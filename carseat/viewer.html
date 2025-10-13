@@ -14,27 +14,80 @@
     </style>
 </head>
 <body>
-    <div class="viewer-container">
-        <div class="flex justify-between items-center border-b pb-4 mb-4">
-            <h1 class="text-2xl font-bold">Archived Forms</h1>
-            <div>
-                <a href="tech_dashboard.html" class="text-blue-600 hover:underline mr-4">&larr; Back to Dashboard</a>
-                <select id="sort-select" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                    <option value="date-desc">Sort by Date (Newest First)</option>
-                    <option value="date-asc">Sort by Date (Oldest First)</option>
-                    <option value="name-asc">Sort by Name (A-Z)</option>
-                    <option value="name-desc">Sort by Name (Z-A)</option>
-                </select>
-            </div>
+    <!-- Password Protection Modal -->
+    <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-bold mb-4">Enter Password</h2>
+            <p class="text-gray-600 mb-6">You need a password to access this page.</p>
+            <form id="password-form">
+                <input type="password" id="password-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-blue-500 focus:border-blue-500" placeholder="Password" autofocus>
+                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Access Archives</button>
+                <p id="error-message" class="text-red-500 text-sm mt-3 h-4"></p>
+            </form>
         </div>
-        
-        <div id="archive-list" class="space-y-1">
-            <!-- Archived submissions will be dynamically inserted here -->
-        </div>
-        <p id="no-archives" class="text-center text-gray-500 py-8 hidden">No archived forms found.</p>
     </div>
 
+    <main id="main-content" class="hidden">
+        <div class="viewer-container">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h1 class="text-2xl font-bold">Archived Forms</h1>
+                <div>
+                    <a href="tech_dashboard.html" class="text-blue-600 hover:underline mr-4">&larr; Back to Dashboard</a>
+                    <select id="sort-select" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <option value="date-desc">Sort by Date (Newest First)</option>
+                        <option value="date-asc">Sort by Date (Oldest First)</option>
+                        <option value="name-asc">Sort by Name (A-Z)</option>
+                        <option value="name-desc">Sort by Name (Z-A)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="archive-list" class="space-y-1">
+                <!-- Archived submissions will be dynamically inserted here -->
+            </div>
+            <p id="no-archives" class="text-center text-gray-500 py-8 hidden">No archived forms found.</p>
+        </div>
+    </main>
+
     <script type="module">
+        // Password protection logic
+        const CORRECT_PASSWORD = 'safekids';
+        const passwordModal = document.getElementById('password-modal');
+        const passwordForm = document.getElementById('password-form');
+        const passwordInput = document.getElementById('password-input');
+        const errorMessage = document.getElementById('error-message');
+        const mainContent = document.getElementById('main-content');
+
+        function showContent() {
+            passwordModal.style.display = 'none';
+            mainContent.classList.remove('hidden');
+        }
+
+        function checkAuth() {
+            if (sessionStorage.getItem('isAuthenticated') === 'true') {
+                showContent();
+                return true;
+            }
+            return false;
+        }
+
+        if (!checkAuth()) {
+            passwordForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                errorMessage.textContent = '';
+                if (passwordInput.value === CORRECT_PASSWORD) {
+                    sessionStorage.setItem('isAuthenticated', 'true');
+                    showContent();
+                    loadArchives(); // Load archives after successful login
+                } else {
+                    errorMessage.textContent = 'Incorrect password.';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            });
+        }
+
+        // --- Firebase and Viewer Logic ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
@@ -60,7 +113,7 @@
         const sortSelect = document.getElementById('sort-select');
 
         async function loadArchives() {
-            listContainer.innerHTML = '';
+            listContainer.innerHTML = 'Loading archives...';
             
             const q = query(collection(db, "carSeatSubmissions"), where("status", "==", "archived"));
             const querySnapshot = await getDocs(q);
@@ -87,6 +140,8 @@
                         return bDate - aDate;
                 }
             });
+            
+            listContainer.innerHTML = ''; // Clear loading message
 
             if (archives.length === 0) {
                 noArchivesMessage.classList.remove('hidden');
@@ -117,9 +172,10 @@
         });
 
         sortSelect.addEventListener('change', loadArchives);
-
-        loadArchives();
+        
+        if (checkAuth()) { // Only load archives if authenticated
+            loadArchives();
+        }
     </script>
 </body>
 </html>
-
