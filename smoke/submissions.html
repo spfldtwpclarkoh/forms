@@ -17,6 +17,10 @@
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             margin-bottom: 2rem;
             overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .submission-card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
         .card-header {
             background-color: #1f2937;
@@ -28,19 +32,6 @@
         }
         .card-body {
             padding: 1.5rem;
-        }
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-        .info-block h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #3b82f6;
-            margin-bottom: 0.5rem;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 0.25rem;
         }
         .info-item {
             display: flex;
@@ -69,6 +60,25 @@
         }
         .pdf-btn:hover {
             background-color: #4338ca;
+        }
+        .pdf-btn:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .status-request {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+        .status-completed {
+            background-color: #dcfce7;
+            color: #166534;
         }
         /* Styles for the hidden PDF template */
         #pdf-template {
@@ -106,6 +116,7 @@
 
     <!-- This is the hidden template for the PDF -->
     <div id="pdf-template" class="hidden">
+        <!-- PDF Template remains the same -->
         <h1>Smoke Alarm Installation</h1>
         
         <h2>Resident Information</h2>
@@ -169,7 +180,6 @@
         </table>
     </div>
 
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -191,9 +201,8 @@
         const { jsPDF } = window.jspdf;
 
         async function generatePdf(data) {
-            const template = document.getElementById('pdf-template');
-            
-            // --- Populate the template with data ---
+           // PDF generation logic remains the same.
+           // Populate the template with data
             document.getElementById('pdf-residentName').textContent = data.residentName || '';
             document.getElementById('pdf-address').textContent = data.address || '';
             document.getElementById('pdf-cityStateZip').textContent = data.cityStateZip || '';
@@ -244,7 +253,7 @@
                 installerSigImg.style.display = 'block';
             } else { installerSigImg.style.display = 'none'; }
             
-            // --- Generate PDF from the populated template ---
+            const template = document.getElementById('pdf-template');
             template.classList.remove('hidden');
 
             try {
@@ -280,43 +289,67 @@
             submissionsContainer.innerHTML = '';
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const card = document.createElement('div');
-                card.className = 'submission-card';
-                card.dataset.docId = doc.id;
-
+                const cardWrapper = document.createElement('div');
+                
                 const submissionDate = data.createdAt.toDate().toLocaleString();
+                const isRequest = data.status === 'request';
+                
+                // Set status text and style
+                let statusText = 'Completed';
+                let statusClass = 'status-completed';
+                if (isRequest) {
+                    statusText = 'New Request';
+                    statusClass = 'status-request';
+                }
 
-                card.innerHTML = `
-                    <div class="card-header">
-                        <div class="flex-grow">
-                            <h2 class="text-xl font-bold">${data.residentName}</h2>
-                            <span class="text-sm text-gray-300">${submissionDate}</span>
+                cardWrapper.innerHTML = `
+                    <div class="submission-card">
+                        <div class="card-header">
+                            <div class="flex-grow">
+                                <h2 class="text-xl font-bold">${data.residentName}</h2>
+                                <span class="text-sm text-gray-300">${submissionDate}</span>
+                            </div>
+                            <button class="pdf-btn" ${isRequest ? 'disabled' : ''}>Generate PDF</button>
                         </div>
-                        <button class="pdf-btn">Generate PDF</button>
-                    </div>
-                    <div class="card-body">
-                        <!-- The card body now only needs a brief summary -->
-                        <div class="info-item"><span class="label">Address:</span><span class="value">${data.address}</span></div>
-                        <div class="info-item"><span class="label">Installer:</span><span class="value">${data.installerName}</span></div>
-                        <div class="info-item"><span class="label">Alarms Installed:</span><span class="value">${data.alarmsInstalled}</span></div>
+                        <div class="card-body">
+                            <div class="info-item">
+                                <span class="label">Status:</span>
+                                <span class="value"><span class="status-badge ${statusClass}">${statusText}</span></span>
+                            </div>
+                            <div class="info-item"><span class="label">Address:</span><span class="value">${data.address}</span></div>
+                            <div class="info-item"><span class="label">Installer:</span><span class="value">${data.installerName || 'N/A'}</span></div>
+                            <div class="info-item"><span class="label">Alarms Installed:</span><span class="value">${data.alarmsInstalled || 'N/A'}</span></div>
+                        </div>
                     </div>
                 `;
+                
+                const card = cardWrapper.firstElementChild;
+                
+                // If it's a new request, make the card clickable to open the full form
+                if(isRequest) {
+                    card.style.cursor = 'pointer';
+                    card.addEventListener('click', () => {
+                        window.location.href = `index.html?id=${doc.id}`;
+                    });
+                }
+                
                 submissionsContainer.appendChild(card);
                 
                 const pdfButton = card.querySelector('.pdf-btn');
-                pdfButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    pdfButton.textContent = 'Generating...';
-                    pdfButton.disabled = true;
-                    
-                    generatePdf(data).finally(() => {
-                       pdfButton.textContent = 'Generate PDF';
-                       pdfButton.disabled = false;
+                if (!isRequest) {
+                    pdfButton.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        pdfButton.textContent = 'Generating...';
+                        pdfButton.disabled = true;
+                        
+                        generatePdf(data).finally(() => {
+                           pdfButton.textContent = 'Generate PDF';
+                           pdfButton.disabled = false;
+                        });
                     });
-                });
+                }
             });
         });
     </script>
 </body>
 </html>
-

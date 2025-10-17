@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoke Alarm Request Form - STFD</title>
+    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .form-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-bottom: 2rem;
+        }
+        .form-section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #bfdbfe;
+        }
+        .radio-group label {
+            margin-right: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .radio-group input {
+            margin-right: 0.5rem;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-6 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Springfield Township Fire Department</h1>
+            <p class="text-xl text-gray-600">Smoke Alarm Installation Request</p>
+        </header>
+
+        <form id="requestForm">
+            <!-- Resident Information -->
+            <div class="form-section">
+                <h2 class="form-section-title">Your Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="residentName" class="input-label">Name</label>
+                        <input type="text" id="residentName" class="form-input" required>
+                    </div>
+                    <div>
+                        <label for="phone" class="input-label">Phone Number</label>
+                        <input type="tel" id="phone" class="form-input" required>
+                    </div>
+                    <div>
+                        <label for="address" class="input-label">Installation Address</label>
+                        <input type="text" id="address" class="form-input" required>
+                    </div>
+                    <div>
+                        <label for="cityStateZip" class="input-label">City/State/ZIP</label>
+                        <input type="text" id="cityStateZip" class="form-input" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="email" class="input-label">Email (optional)</label>
+                        <input type="email" id="email" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property Information -->
+            <div class="form-section">
+                <h2 class="form-section-title">Property Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="input-label">Property Type</label>
+                        <div class="radio-group mt-2">
+                            <label><input type="radio" name="propertyType" value="Single-Family Home" required> Single-Family Home</label>
+                            <label><input type="radio" name="propertyType" value="Apartment/Condo"> Apartment/Condo</label>
+                            <label><input type="radio" name="propertyType" value="Mobile Home"> Mobile Home</label>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="numFloors" class="input-label">Number of Floors</label>
+                        <input type="number" id="numFloors" class="form-input" min="1" required>
+                    </div>
+                     <div>
+                        <label for="numBedrooms" class="input-label">Number of Bedrooms</label>
+                        <input type="number" id="numBedrooms" class="form-input" min="0" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition shadow-lg">Submit Request</button>
+            </div>
+        </form>
+        
+        <!-- Success Modal -->
+        <div id="successModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Request Submitted!</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500">Thank you. The Springfield Township Fire Department has received your request and will contact you shortly to schedule an installation.</p>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="okButton" class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlZP-8fKHBD32ZcRJbtZfrC8tw51XUVk8",
+            authDomain: "stfd-smoke-detector-form.firebaseapp.com",
+            projectId: "stfd-smoke-detector-form",
+            storageBucket: "stfd-smoke-detector-form.firebasestorage.app",
+            messagingSenderId: "1025681020503",
+            appId: "1:1025681020503:web:f2c84c6134b2d5a3c13512",
+            measurementId: "G-226TY8VVCK"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
+
+        const form = document.getElementById('requestForm');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+            
+            const propertyTypeInput = document.querySelector('input[name="propertyType"]:checked');
+            const now = new Date();
+
+            const submissionData = {
+                status: 'request', 
+                residentName: document.getElementById('residentName').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                cityStateZip: document.getElementById('cityStateZip').value,
+                email: document.getElementById('email').value,
+                propertyType: propertyTypeInput ? propertyTypeInput.value : '',
+                numFloors: document.getElementById('numFloors').value,
+                numBedrooms: document.getElementById('numBedrooms').value,
+                createdAt: now
+            };
+
+            try {
+                // 1. Submit to Firebase
+                const docRef = await db.collection("submissions").add(submissionData);
+                console.log("Request submitted to Firebase with ID: ", docRef.id);
+
+                // 2. Submit to Google Sheet
+                const googleScriptURL = 'https://script.google.com/macros/s/AKfycbw2U137IGssst0fLLVFnUg6V7Nu2ST_D-mgTq79PjuAoQ8rmAlOTsLPf-qkRZiB1oUPjw/exec'; // <-- IMPORTANT: REPLACE THIS URL
+
+                if (googleScriptURL !== 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE' && googleScriptURL !== '') {
+                    const date = `${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}/${now.getFullYear()}`;
+                    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    
+                    const sheetData = {
+                        "Request Date/Time": `${date} ${time}`,
+                        "Name": submissionData.residentName,
+                        "Phone": submissionData.phone,
+                        "Address": submissionData.address,
+                        "City/State/Zip": submissionData.cityStateZip,
+                        "Email": submissionData.email,
+                        "Property Type": submissionData.propertyType,
+                        "# of Floors": submissionData.numFloors,
+                        "# of Bedrooms": submissionData.numBedrooms
+                    };
+
+                    fetch(googleScriptURL, { 
+                        method: 'POST', 
+                        body: JSON.stringify(sheetData),
+                        // The Content-Type header is not required for this Apps Script setup, but can be useful.
+                        // The Apps Script will receive the data as a raw text string in the request body.
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.result === 'success') {
+                            console.log('Successfully submitted to Google Sheet.');
+                        } else {
+                            // Log error but don't block the user
+                            console.error('Error submitting to Google Sheet:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        // Log error but don't block the user
+                        console.error('Error submitting to Google Sheet:', error.message);
+                    });
+                }
+
+
+                document.getElementById('successModal').classList.remove('hidden');
+                form.reset();
+            } catch (error) {
+                console.error("Error adding document to Firebase: ", error);
+                alert("There was an error submitting your request. Please try again.");
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Request';
+            }
+        });
+        
+        document.getElementById('okButton').addEventListener('click', () => {
+             document.getElementById('successModal').classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
+

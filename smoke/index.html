@@ -250,6 +250,7 @@
     <!-- External libraries loaded here, before the main script -->
     <script src="./js/signature_pad.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
     <!-- Main application script -->
@@ -264,14 +265,16 @@
             measurementId: "G-226TY8VVCK"
         };
 
-        // Initialize Firebase using the compat libraries
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore(app);
+        const auth = firebase.auth();
 
         const form = document.getElementById('installationForm');
         const installationRowsContainer = document.getElementById('installation-rows');
         const addRoomBtn = document.getElementById('add-room-btn');
+        const submitButton = form.querySelector('button[type="submit"]');
         let roomCounter = 0;
+        let submissionId = null;
 
         // Signature Pad Elements
         const signatureModal = document.getElementById('signatureModal');
@@ -290,24 +293,19 @@
             signatureCanvas.getContext("2d").scale(ratio, ratio);
             signaturePad.clear();
         }
-
         window.addEventListener("resize", resizeCanvas);
-        // Initial resize
         resizeCanvas();
-
         function openSignatureModal(target) {
             currentSignature = target;
             signatureModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             resizeCanvas();
         }
-        
         function closeSignatureModal() {
             signatureModal.classList.add('hidden');
             document.body.style.overflow = 'auto';
             signaturePad.clear();
         }
-        
         residentSignatureWrapper.addEventListener('click', () => {
              openSignatureModal({
                 wrapper: residentSignatureWrapper,
@@ -316,7 +314,6 @@
                 placeholder: document.getElementById('residentSignaturePlaceholder')
              });
         });
-        
         installerSignatureWrapper.addEventListener('click', () => {
              openSignatureModal({
                 wrapper: installerSignatureWrapper,
@@ -325,7 +322,6 @@
                 placeholder: document.getElementById('installerSignaturePlaceholder')
              });
         });
-
         document.getElementById('clearSignatureBtn').addEventListener('click', () => signaturePad.clear());
         document.getElementById('cancelSignatureBtn').addEventListener('click', closeSignatureModal);
         document.getElementById('saveSignatureBtn').addEventListener('click', () => {
@@ -387,54 +383,95 @@
             `;
             installationRowsContainer.appendChild(div);
             
-            const removeBtn = div.querySelector('.remove-room-btn');
-            removeBtn.addEventListener('click', () => {
-                div.remove();
-            });
+            div.querySelector('.remove-room-btn').addEventListener('click', () => { div.remove(); });
         }
         
-        ['Bedroom 1', 'Bedroom 2', 'Hallway', 'Living Room'].forEach(room => createInstallationRow(room));
-        createInstallationRow();
-
         addRoomBtn.addEventListener('click', () => createInstallationRow());
+
+        async function loadRequestData(id) {
+            try {
+                const docRef = db.collection("submissions").doc(id);
+                const doc = await docRef.get();
+
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('residentName').value = data.residentName || '';
+                    document.getElementById('phone').value = data.phone || '';
+                    document.getElementById('address').value = data.address || '';
+                    document.getElementById('cityStateZip').value = data.cityStateZip || '';
+                    document.getElementById('email').value = data.email || '';
+                    document.getElementById('numFloors').value = data.numFloors || '';
+                    document.getElementById('numBedrooms').value = data.numBedrooms || '';
+                    if (data.propertyType) {
+                        document.querySelector(`input[name="propertyType"][value="${data.propertyType}"]`).checked = true;
+                    }
+                } else {
+                    console.error("No such document!");
+                }
+            } catch (error) {
+                console.error("Error getting document:", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Connecting...';
+
+            try {
+                await auth.signInAnonymously();
+                console.log("Signed in anonymously");
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Form';
+            } catch (error) {
+                console.error("Anonymous sign-in failed:", error);
+                submitButton.textContent = 'Connection Failed';
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            submissionId = urlParams.get('id');
+
+            if (submissionId) {
+                loadRequestData(submissionId);
+            }
+
+            installationRowsContainer.innerHTML = '';
+            ['Bedroom 1', 'Bedroom 2', 'Hallway', 'Living Room'].forEach(room => createInstallationRow(room));
+            createInstallationRow();
+        });
+
         
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
 
             const installationDetails = [];
             const rows = installationRowsContainer.querySelectorAll('.grid');
             rows.forEach((row) => {
                 const roomName = row.querySelector('.room-name').value;
                 if (roomName) {
-                    const newAlarmInput = row.querySelector('input[name^="newAlarm"]:checked');
-                    const batteryCheckedInput = row.querySelector('input[name^="batteryChecked"]:checked');
-                    const alarmTestedInput = row.querySelector('input[name^="alarmTested"]:checked');
-
                     installationDetails.push({
                         room: roomName,
-                        newAlarmInstalled: newAlarmInput ? newAlarmInput.value : 'No',
-                        batteryChecked: batteryCheckedInput ? batteryCheckedInput.value : 'No',
-                        alarmTested: alarmTestedInput ? alarmTestedInput.value : 'No',
+                        newAlarmInstalled: row.querySelector('input[name^="newAlarm"]:checked')?.value || 'No',
+                        batteryChecked: row.querySelector('input[name^="batteryChecked"]:checked')?.value || 'No',
+                        alarmTested: row.querySelector('input[name^="alarmTested"]:checked')?.value || 'No',
                         notes: row.querySelector('.notes').value,
                     });
                 }
             });
             
-            const propertyTypeInput = document.querySelector('input[name="propertyType"]:checked');
-            const existingAlarmsInput = document.querySelector('input[name="existingAlarms"]:checked');
-            const workingAlarmsInput = document.querySelector('input[name="workingAlarms"]:checked');
-
             const submissionData = {
+                status: 'completed',
                 residentName: document.getElementById('residentName').value,
                 phone: document.getElementById('phone').value,
                 address: document.getElementById('address').value,
                 cityStateZip: document.getElementById('cityStateZip').value,
                 email: document.getElementById('email').value,
-                propertyType: propertyTypeInput ? propertyTypeInput.value : '',
+                propertyType: document.querySelector('input[name="propertyType"]:checked')?.value || '',
                 numFloors: document.getElementById('numFloors').value,
                 numBedrooms: document.getElementById('numBedrooms').value,
-                existingAlarms: existingAlarmsInput ? existingAlarmsInput.value : '',
-                workingAlarms: workingAlarmsInput ? workingAlarmsInput.value : '',
+                existingAlarms: document.querySelector('input[name="existingAlarms"]:checked')?.value || 'NO',
+                workingAlarms: document.querySelector('input[name="workingAlarms"]:checked')?.value || 'NO',
                 alarmsInstalled: document.getElementById('alarmsInstalled').value,
                 installationDetails,
                 receivedInfo: document.getElementById('receivedInfo').checked,
@@ -447,30 +484,109 @@
             };
 
             try {
-                // Use the compat syntax for adding a document
-                const docRef = await db.collection("submissions").add(submissionData);
-                console.log("Document written with ID: ", docRef.id);
+                // 1. Update or create in Firebase
+                if (submissionId) {
+                    await db.collection("submissions").doc(submissionId).update(submissionData);
+                    console.log("Document updated in Firebase with ID: ", submissionId);
+                } else {
+                    const docRef = await db.collection("submissions").add(submissionData);
+                    console.log("New document written to Firebase with ID: ", docRef.id);
+                }
+
+                // 2. Submit completion data to Google Sheet
+                const googleScriptURL = 'https://script.google.com/macros/s/AKfycbw2U137IGssst0fLLVFnUg6V7Nu2ST_D-mgTq79PjuAoQ8rmAlOTsLPf-qkRZiB1oUPjw/exec';
+
+                if (googleScriptURL) {
+                    const now = new Date();
+                    const date = `${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}/${now.getFullYear()}`;
+                    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    
+                    let sheetData = {};
+
+                    if (submissionId) {
+                        // This is an UPDATE to an existing request
+                        sheetData = {
+                            "Name": submissionData.residentName,
+                            "Address": submissionData.address,
+                            "Existing Alarms Before Visit?": submissionData.existingAlarms,
+                            "Working Alarms Present?": submissionData.workingAlarms,
+                            "Total # of Alarms Installed": submissionData.alarmsInstalled,
+                            "Resident Recieved Fire Safety Info": submissionData.receivedInfo ? "YES" : "NO",
+                            "Resident Permission for Installation and Testing of Alarms": submissionData.givePermission ? "YES" : "NO",
+                            "Resident Signature Obtained?": submissionData.residentSignature ? "YES" : "NO",
+                            "Installer Name": submissionData.installerName,
+                            "Installer Signed Form?": submissionData.installerSignature ? "YES" : "NO",
+                            "Installation Completed Date/Time": `${date} ${time}`
+                        };
+                    } else {
+                        // This is a NEW entry from a blank form
+                        sheetData = {
+                            "Request Date/Time": `${date} ${time}`,
+                            "Name": submissionData.residentName,
+                            "Phone": submissionData.phone,
+                            "Address": submissionData.address,
+                            "City/State/Zip": submissionData.cityStateZip,
+                            "Email": submissionData.email,
+                            "Property Type": submissionData.propertyType,
+                            "# of Floors": submissionData.numFloors,
+                            "# of Bedrooms": submissionData.numBedrooms,
+                            "Existing Alarms Before Visit?": submissionData.existingAlarms,
+                            "Working Alarms Present?": submissionData.workingAlarms,
+                            "Total # of Alarms Installed": submissionData.alarmsInstalled,
+                            "Resident Recieved Fire Safety Info": submissionData.receivedInfo ? "YES" : "NO",
+                            "Resident Permission for Installation and Testing of Alarms": submissionData.givePermission ? "YES" : "NO",
+                            "Resident Signature Obtained?": submissionData.residentSignature ? "YES" : "NO",
+                            "Installer Name": submissionData.installerName,
+                            "Installer Signed Form?": submissionData.installerSignature ? "YES" : "NO",
+                            "Installation Completed Date/Time": `${date} ${time}`
+                        };
+                    }
+
+
+                    fetch(googleScriptURL, { 
+                        method: 'POST', 
+                        body: JSON.stringify(sheetData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.result === 'success') {
+                            console.log('Successfully updated Google Sheet.');
+                        } else {
+                            console.error('Error updating Google Sheet:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating Google Sheet:', error.message);
+                    });
+                }
+
                 document.getElementById('successModal').classList.remove('hidden');
-                
+                form.reset();
+                submissionId = null;
+                // ... reset logic ...
                 document.querySelectorAll('.signature-image').forEach(img => {
                     img.src = '';
                     img.classList.add('hidden');
                 });
                 document.querySelectorAll('.signature-placeholder').forEach(ph => ph.classList.remove('hidden'));
-
-                form.reset();
                 roomCounter = 0;
                 installationRowsContainer.innerHTML = '';
                 ['Bedroom 1', 'Bedroom 2', 'Hallway', 'Living Room'].forEach(room => createInstallationRow(room));
                 createInstallationRow();
+
+
             } catch (error) {
-                console.error("Error adding document: ", error);
+                console.error("Error saving document: ", error);
                 alert("There was an error submitting the form. Please try again.");
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Form';
             }
         });
         
         document.getElementById('okButton').addEventListener('click', () => {
              document.getElementById('successModal').classList.add('hidden');
+             window.location.href = 'submissions.html';
         });
     </script>
 </body>
