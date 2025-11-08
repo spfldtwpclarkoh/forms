@@ -717,7 +717,8 @@
                             playNotificationSound();
                             
                             // 2. Show browser notification (if permission granted)
-                            if (Notification.permission === 'granted') {
+                            // --- MODIFICATION: Check if Notification API is supported ---
+                            if ('Notification' in window && Notification.permission === 'granted') {
                                 new Notification('New Smoke Alarm Request', {
                                     body: `From: ${docData.residentName}\nAddress: ${docData.address}`,
                                     icon: './images/favicon.ico' // Optional: uses your favicon
@@ -908,7 +909,8 @@
                 isInitialLoad = true;
                 
                 // Check notification permission and show button if needed
-                if (Notification.permission === 'default') {
+                // --- MODIFICATION: Check if Notification API is supported ---
+                if ('Notification' in window && Notification.permission === 'default') {
                     notifyBtn.classList.remove('hidden');
                 } else {
                     notifyBtn.classList.add('hidden');
@@ -980,6 +982,13 @@
 
         // --- Notification Permission Button Event ---
         notifyBtn.addEventListener('click', async () => {
+            // --- MODIFICATION: Check if Notification API is supported ---
+            if (!('Notification' in window)) {
+                logToConsole('Notifications not supported on this browser.', true);
+                notifyBtn.classList.add('hidden'); // Hide button if not supported
+                return;
+            }
+
             try {
                 logToConsole('Requesting notification permission...', false);
                 const permission = await Notification.requestPermission();
