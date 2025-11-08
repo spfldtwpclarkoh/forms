@@ -12,6 +12,52 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
+        
+        /* --- MODIFICATION: Debug Console Styles --- */
+        #debug-console {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #fffbe6; /* yellow-50 */
+            border-bottom: 2px solid #facc15; /* yellow-400 */
+            color: #713f12; /* yellow-900 */
+            padding: 0.75rem;
+            z-index: 9999;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        #debug-console h3 {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #fde68a;
+            padding-bottom: 0.25rem;
+        }
+        #debug-console p {
+            border-bottom: 1px solid #fde68a; /* yellow-200 */
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+        #debug-console p:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        #debug-console .error {
+            background-color: #fee2e2; /* red-100 */
+            border-color: #f87171; /* red-400 */
+            color: #991b1b; /* red-800 */
+            font-weight: bold;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+        /* --- End Debug Console Styles --- */
+
         .submission-card {
             background-color: white;
             border-radius: 0.75rem;
@@ -230,7 +276,14 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 p-4 sm:p-6 md:p-8">
+<body class="bg-gray-100 p-4 sm:p-6 md:p-8 pt-32"> <!-- MODIFICATION: Added padding-top to body -->
+    
+    <!-- MODIFICATION: Debug Console -->
+    <div id="debug-console" class="hidden">
+        <h3>Debug Console:</h3>
+    </div>
+    <!-- End Debug Console -->
+
     <!-- Login Form -->
     <div id="login-container">
         <div class="login-card">
@@ -399,6 +452,43 @@
         let firestoreUnsubscribe = null; // To hold the onSnapshot listener
         let isInitialLoad = true; // To prevent notifications on first load
 
+        // --- MODIFICATION: On-Screen Debug Console ---
+        const debugConsole = document.getElementById('debug-console');
+        let errorCount = 0;
+
+        function logToConsole(message, isError = false) {
+            try {
+                if (debugConsole.classList.contains('hidden')) {
+                    debugConsole.classList.remove('hidden');
+                }
+                errorCount++;
+                const p = document.createElement('p');
+                p.textContent = `${errorCount}: ${message}`;
+                if (isError) {
+                    p.classList.add('error');
+                }
+                debugConsole.appendChild(p);
+            } catch (e) {
+                console.error("Critical error in logToConsole:", e);
+            }
+        }
+
+        // Global Error Handlers
+        window.onerror = function(message, source, lineno, colno, error) {
+            logToConsole(`[window.onerror] ${message} at ${source}:${lineno}:${colno}`, true);
+            return true; // Prevents the default browser error console
+        };
+
+        window.addEventListener('unhandledrejection', function(event) {
+            // Handle cases where event.reason is an object
+            const reason = (event.reason.message || event.reason).toString();
+            logToConsole(`[Unhandled Promise] ${reason}`, true);
+        });
+
+        logToConsole('Debug console initialized.', false);
+        // --- End Debug Console ---
+
+
         // --- Audio Notification Function ---
         function playNotificationSound() {
             try {
@@ -418,6 +508,7 @@
                 oscillator.stop(audioContext.currentTime + 0.5);
             } catch (err) {
                 console.error("Could not play notification sound:", err);
+                logToConsole(`Audio error: ${err.message}`, true); // Log to on-screen console
             }
         }
 
@@ -451,6 +542,7 @@
                     }
                 } catch (e) {
                     console.warn("Error parsing date input:", dateInput, e);
+                    logToConsole(`Date parse error: ${e.message}`, false); // Not critical
                     return dateInput; // return original string if error
                 }
             }
@@ -521,6 +613,7 @@
                     imgElement.onload = () => resolve();
                     imgElement.onerror = () => {
                         console.error("Failed to load signature image.");
+                        logToConsole('Failed to load signature image.', true); // Log to on-screen console
                         // We still resolve so PDF generation doesn't break,
                         // but the image will be missing/broken.
                         resolve(); 
@@ -576,6 +669,7 @@
                 
             } catch(err) {
                 console.error("Error generating PDF:", err);
+                logToConsole(`PDF error: ${err.message}`, true); // Log to on-screen console
             } finally {
                 // template.classList.add('hidden'); // <-- No longer needed
                 // Reset images
@@ -588,6 +682,7 @@
 
         // --- Function to load submissions ---
         function loadSubmissions() {
+            logToConsole('loadSubmissions() called.', false);
             submissionsContainer.innerHTML = '<p class="text-center text-gray-500">Loading submissions...</p>';
             
             // --- MODIFICATION: Removed orderBy() from the query ---
@@ -595,13 +690,17 @@
             // By removing it, we can fetch the data and sort it in JavaScript,
             // which fixes the mobile-only loading bug.
             const q = query(collection(db, "submissions"));
+            logToConsole('Query created.', false);
 
             // Store the listener so we can unsubscribe later
             firestoreUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                logToConsole('onSnapshot() received data.', false);
                 if (querySnapshot.empty) {
+                    logToConsole('Snapshot is empty, no submissions found.', false);
                     submissionsContainer.innerHTML = '<p class="text-center text-gray-500">No submissions found.</p>';
                     return;
                 }
+                logToConsole(`Snapshot received ${querySnapshot.size} documents.`, false);
 
                 // --- Notification Logic ---
                 // Process changes to check for new requests
@@ -612,6 +711,7 @@
                         // Only trigger if the new document is a 'request'
                         if (docData.status === 'request') {
                             console.log('New request added:', docData.residentName);
+                            logToConsole('New request detected.', false);
                             
                             // 1. Play audio cue
                             playNotificationSound();
@@ -636,13 +736,20 @@
                 // --- MODIFICATION: Made sorting "defensive" ---
                 // This handles cases where 'createdAt' might be missing or null in a document,
                 // preventing the app from crashing.
-                docs.sort((a, b) => {
-                    const dateA = a.data().createdAt?.toDate() || new Date(0); // Use optional chaining and default
-                    const dateB = b.data().createdAt?.toDate() || new Date(0); // Use optional chaining and default
-                    return dateB - dateA; // Sort descending (newest first)
-                });
+                try {
+                    logToConsole('Sorting documents...', false);
+                    docs.sort((a, b) => {
+                        const dateA = a.data().createdAt?.toDate() || new Date(0); // Use optional chaining and default
+                        const dateB = b.data().createdAt?.toDate() || new Date(0); // Use optional chaining and default
+                        return dateB - dateA; // Sort descending (newest first)
+                    });
+                    logToConsole('Sorting complete.', false);
+                } catch (sortErr) {
+                    logToConsole(`Sorting failed: ${sortErr.message}`, true);
+                }
                 
                 // --- MODIFICATION: Iterate over the sorted 'docs' array ---
+                logToConsole('Rendering documents...', false);
                 docs.forEach((doc) => {
                     const data = doc.data();
                     const cardWrapper = document.createElement('div');
@@ -728,11 +835,13 @@
                         });
                     }
                 });
+                logToConsole('Rendering complete.', false);
                 
                 // After the first snapshot is processed, set the flag to false
                 isInitialLoad = false;
             }, (error) => { // <-- MODIFICATION: Added error handler
                 console.error("Error loading submissions: ", error);
+                logToConsole(`Error loading submissions: ${error.message}`, true); // Log to on-screen console
                 submissionsContainer.innerHTML = `<p class="text-center text-red-500 font-medium">Failed to load submissions: ${error.message}</p>`;
             });
         }
@@ -777,6 +886,7 @@
                 hideDenyModal();
             } catch (err) { // <-- FIX: Added opening brace {
                 console.error("Error denying document:", err);
+                logToConsole(`Error denying document: ${err.message}`, true); // Log to on-screen console
                 denyError.textContent = 'Failed to deny. Please try again.';
                 denyError.classList.remove('hidden');
             } finally { // <-- FIX: Added closing brace }
@@ -790,6 +900,7 @@
             if (user) {
                 // User is signed in
                 console.log("User is signed in:", user.email);
+                logToConsole(`User signed in: ${user.email}`, false);
                 loginContainer.classList.add('hidden');
                 contentContainer.classList.remove('hidden');
 
@@ -807,6 +918,7 @@
             } else {
                 // User is signed out
                 console.log("User is signed out.");
+                logToConsole('User signed out.', false);
                 loginContainer.classList.remove('hidden');
                 contentContainer.classList.add('hidden');
                 notifyBtn.classList.add('hidden'); // Hide notify button on logout
@@ -816,6 +928,7 @@
                 
                 // Unsubscribe from Firestore listener if it exists
                 if (firestoreUnsubscribe) {
+                    logToConsole('Unsubscribing from Firestore listener.', false);
                     firestoreUnsubscribe();
                     firestoreUnsubscribe = null;
                 }
@@ -828,15 +941,18 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
+            logToConsole('Login attempt...', false);
             loginButton.disabled = true;
             loginButton.textContent = 'Logging in...';
             loginError.classList.add('hidden');
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
+                logToConsole('Login successful.', false);
                 // Auth state change listener will handle UI update
             } catch (error) {
                 console.error("Login failed:", error.code, error.message);
+                logToConsole(`Login failed: ${error.message}`, true); // Log to on-screen console
                 if (error.code === 'auth/invalid-credential') {
                      loginError.textContent = 'Invalid email or password.';
                 } else {
@@ -852,10 +968,12 @@
         // --- Sign Out Button Click Event ---
         signOutBtn.addEventListener('click', async () => {
             try {
+                logToConsole('Signing out...', false);
                 await signOut(auth);
                 // Auth state change listener will handle UI update
             } catch (error) {
                 console.error("Sign out failed:", error);
+                logToConsole(`Sign out failed: ${error.message}`, true); // Log to on-screen console
                 alert("Failed to sign out. Please try again.");
             }
         });
@@ -863,13 +981,16 @@
         // --- Notification Permission Button Event ---
         notifyBtn.addEventListener('click', async () => {
             try {
+                logToConsole('Requesting notification permission...', false);
                 const permission = await Notification.requestPermission();
                 if (permission === 'granted' || permission === 'denied') {
                     notifyBtn.classList.add('hidden');
                 }
+                logToConsole(`Notification permission: ${permission}`, false);
                 console.log('Notification permission status:', permission);
             } catch (err) {
                 console.error('Error requesting notification permission:', err);
+                logToConsole(`Notify permission error: ${err.message}`, true); // Log to on-screen console
             }
         });
 
