@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Submissions - STFD</title>
     <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="./images/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -411,6 +412,48 @@
             }
         }
 
+        // --- Helper function to format dates ---
+        function formatDate(dateInput) {
+            if (!dateInput) return '';
+            
+            let date;
+            // Check if it's a Firestore Timestamp
+            if (dateInput && typeof dateInput.toDate === 'function') {
+                date = dateInput.toDate();
+            } 
+            // Check if it's an ISO 8601 string (like from residentDate YYYY-MM-DD)
+            else if (typeof dateInput === 'string' && dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                // Split to avoid timezone issues where new Date('YYYY-MM-DD') can be off by one day
+                const [year, month, day] = dateInput.split('-').map(Number);
+                date = new Date(year, month - 1, day);
+            } 
+            // Check if it's already a Date object
+            else if (dateInput instanceof Date) {
+                date = dateInput;
+            } 
+            // If it's a string but not ISO, or some other type, try to parse it
+            else {
+                try {
+                    date = new Date(dateInput);
+                    // Check if date is valid
+                    if (isNaN(date.getTime())) {
+                        console.warn("Invalid date input for formatting:", dateInput);
+                        return dateInput; // return original string if invalid
+                    }
+                } catch (e) {
+                    console.warn("Error parsing date input:", dateInput, e);
+                    return dateInput; // return original string if error
+                }
+            }
+
+            // Now format the valid Date object
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            const year = date.getFullYear();
+            
+            return `${month}/${day}/${year}`;
+        }
+
         // --- PDF Generation Function (IMPROVED) ---
         async function generatePdf(data) {
            // Populate the template with data
@@ -448,9 +491,9 @@
             document.getElementById('pdf-receivedInfo').textContent = data.receivedInfo ? '☑' : '☐';
             document.getElementById('pdf-givePermission').textContent = data.givePermission ? '☑' : '☐';
             
-            document.getElementById('pdf-residentDate').textContent = data.residentDate || '';
+            document.getElementById('pdf-residentDate').textContent = formatDate(data.residentDate);
             document.getElementById('pdf-installerName').textContent = data.installerName || '';
-            document.getElementById('pdf-submissionDate').textContent = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : '';
+            document.getElementById('pdf-submissionDate').textContent = formatDate(data.createdAt);
 
             // --- Improved Image Loading ---
             const residentSigImg = document.getElementById('pdf-residentSig');
