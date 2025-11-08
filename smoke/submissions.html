@@ -590,7 +590,11 @@
         function loadSubmissions() {
             submissionsContainer.innerHTML = '<p class="text-center text-gray-500">Loading submissions...</p>';
             
-            const q = query(collection(db, "submissions"), orderBy("createdAt", "desc"));
+            // --- MODIFICATION: Removed orderBy() from the query ---
+            // The orderBy("createdAt", "desc") requires a composite index in Firestore.
+            // By removing it, we can fetch the data and sort it in JavaScript,
+            // which fixes the mobile-only loading bug.
+            const q = query(collection(db, "submissions"));
 
             // Store the listener so we can unsubscribe later
             firestoreUnsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -624,9 +628,15 @@
                 });
 
                 // --- Render Logic ---
-                // Re-render the entire list from all docs (simplest way to keep UI in sync)
                 submissionsContainer.innerHTML = ''; 
-                querySnapshot.forEach((doc) => {
+
+                // --- MODIFICATION: Sort the results in JavaScript ---
+                const docs = querySnapshot.docs;
+                // Sort by the 'createdAt' timestamp, descending (newest first)
+                docs.sort((a, b) => b.data().createdAt.toDate() - a.data().createdAt.toDate());
+                
+                // --- MODIFICATION: Iterate over the sorted 'docs' array ---
+                docs.forEach((doc) => {
                     const data = doc.data();
                     const cardWrapper = document.createElement('div');
                     
@@ -709,6 +719,9 @@
                 
                 // After the first snapshot is processed, set the flag to false
                 isInitialLoad = false;
+            }, (error) => { // <-- MODIFICATION: Added error handler
+                console.error("Error loading submissions: ", error);
+                submissionsContainer.innerHTML = `<p class="text-center text-red-500 font-medium">Failed to load submissions: ${error.message}</p>`;
             });
         }
 
