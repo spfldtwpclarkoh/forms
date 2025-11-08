@@ -4,15 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smoke Alarm Request Form - STFD</title>
+    <!-- Favicon links (assuming images folder is in the same directory) -->
     <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="./images/apple-touch-icon.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Using Inter font, loaded via Tailwind's default config */
         body { font-family: 'Inter', sans-serif; }
         .form-section {
             background-color: white;
             padding: 2rem;
-            border-radius: 0.75rem;
+            border-radius: 0.75rem; /* Rounded corners */
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             margin-bottom: 2rem;
         }
@@ -32,7 +35,7 @@
             width: 100%;
             padding: 0.75rem;
             border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
+            border-radius: 0.5rem; /* Rounded corners */
             transition: border-color 0.2s;
         }
         .form-input:focus, .form-select:focus {
@@ -57,7 +60,13 @@
 <body class="bg-gray-100 p-4 sm:p-6 md:p-8">
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">Springfield Township Fire Department</h1>
+            <!-- 
+              LOGO PLACEHOLDER: 
+              Replace './logo-placeholder.png' with the path to your department's logo.
+              You can adjust the 'max-h-24' (max-height: 6rem) class to resize your logo.
+            -->
+            <img src="./images/logo.png" alt="Springfield Township Fire Department Logo" class="mx-auto max-h-72 h-auto w-auto mb-4">
+            
             <p class="text-xl text-gray-600">Smoke Alarm Installation Request</p>
         </header>
 
@@ -112,6 +121,7 @@
                 </div>
             </div>
 
+            <!-- Submission Button -->
             <div class="text-center">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition shadow-lg">Submit Request</button>
             </div>
@@ -140,12 +150,16 @@
         </div>
     </div>
     
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     
     <script>
+        // --- Firebase Configuration ---
+        // WARNING: It's best practice to secure these keys, e.g., using environment variables
+        // or Firebase App Check, but for this self-contained file, they are here.
         const firebaseConfig = {
-            apiKey: "AIzaSyBlZP-8fKHBD32ZcRJbtZfrC8tw51XUVk8",
+            apiKey: "AIzaSyBlZP-8fKHBD32ZcRJbtZfrC8tw51XUVk8", // This key is publicly accessible
             authDomain: "stfd-smoke-detector-form.firebaseapp.com",
             projectId: "stfd-smoke-detector-form",
             storageBucket: "stfd-smoke-detector-form.firebasestorage.app",
@@ -154,13 +168,15 @@
             measurementId: "G-226TY8VVCK"
         };
 
+        // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore(app);
 
+        // --- Form Handling ---
         const form = document.getElementById('requestForm');
         
         form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Prevent default form submission
             const submitButton = e.target.querySelector('button[type="submit"]');
             submitButton.disabled = true;
             submitButton.textContent = 'Submitting...';
@@ -168,8 +184,9 @@
             const propertyTypeInput = document.querySelector('input[name="propertyType"]:checked');
             const now = new Date();
 
+            // Gather form data into an object
             const submissionData = {
-                status: 'request', 
+                status: 'request', // Default status for new requests
                 residentName: document.getElementById('residentName').value,
                 phone: document.getElementById('phone').value,
                 address: document.getElementById('address').value,
@@ -178,21 +195,22 @@
                 propertyType: propertyTypeInput ? propertyTypeInput.value : '',
                 numFloors: document.getElementById('numFloors').value,
                 numBedrooms: document.getElementById('numBedrooms').value,
-                createdAt: now
+                createdAt: now // Timestamp the request
             };
 
             try {
-                // 1. Submit to Firebase
+                // 1. Submit to Firebase Firestore
                 const docRef = await db.collection("submissions").add(submissionData);
                 console.log("Request submitted to Firebase with ID: ", docRef.id);
 
-                // 2. Submit to Google Sheet
-                const googleScriptURL = 'https://script.google.com/macros/s/AKfycby_b5Y4dTYcV5y3ppmteRHmLUtsBWADrNUKIm0Aja4aPi3Jes2datSSn5yGcTRNumR4VQ/exec'; // <-- IMPORTANT: REPLACE THIS URL
+                // 2. Submit to Google Sheet (via Apps Script Web App)
+                const googleScriptURL = 'https://script.google.com/macros/s/AKfycby_b5Y4dTYcV5y3ppmteRHmLUtsBWADrNUKIm0Aja4aPi3Jes2datSSn5yGcTRNumR4VQ/exec'; // <-- This URL MUST be correct
 
                 if (googleScriptURL !== 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE' && googleScriptURL !== '') {
                     const date = `${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}/${now.getFullYear()}`;
                     const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
                     
+                    // Format data specifically for the Google Sheet
                     const sheetData = {
                         "Request Date/Time": `${date} ${time}`,
                         "Name": submissionData.residentName,
@@ -205,43 +223,48 @@
                         "# of Bedrooms": submissionData.numBedrooms
                     };
 
+                    // Send data to Google Apps Script
+                    // We use fetch in 'no-cors' mode as a simple "fire and forget" POST.
+                    // The Apps Script is set up to handle this.
                     fetch(googleScriptURL, { 
                         method: 'POST', 
-                        body: JSON.stringify(sheetData),
-                        // The Content-Type header is not required for this Apps Script setup, but can be useful.
-                        // The Apps Script will receive the data as a raw text string in the request body.
+                        mode: 'no-cors', // Important for cross-origin POST to Apps Script
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(sheetData)
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if(data.result === 'success') {
-                            console.log('Successfully submitted to Google Sheet.');
-                        } else {
-                            // Log error but don't block the user
-                            console.error('Error submitting to Google Sheet:', data.error);
-                        }
+                    .then(response => {
+                        // 'no-cors' mode means we won't get a readable response, but the request is sent.
+                        console.log('Successfully triggered Google Sheet submission.');
                     })
                     .catch(error => {
-                        // Log error but don't block the user
+                        // Log error but don't block the user's success modal
                         console.error('Error submitting to Google Sheet:', error.message);
                     });
                 }
 
-
+                // Show the success modal
                 document.getElementById('successModal').classList.remove('hidden');
-                form.reset();
+                form.reset(); // Clear the form fields
             } catch (error) {
                 console.error("Error adding document to Firebase: ", error);
-                alert("There was an error submitting your request. Please try again.");
+                // We use a simple message box here as the modal is for success.
+                // This could be replaced with a custom error modal.
+                // Do not use alert() in a real application, use a modal.
+                // For this example, we'll log it heavily.
+                console.error("There was an error submitting your request. Please try again.");
             } finally {
+                // Re-enable the submit button whether it succeeded or failed
                 submitButton.disabled = false;
                 submitButton.textContent = 'Submit Request';
             }
         });
         
+        // --- Modal 'OK' Button ---
         document.getElementById('okButton').addEventListener('click', () => {
              document.getElementById('successModal').classList.add('hidden');
         });
     </script>
 </body>
 </html>
-

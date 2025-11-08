@@ -30,6 +30,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap; /* MODIFICATION: Allow buttons to wrap on small screens */
+            gap: 0.5rem; /* MODIFICATION: Add spacing when wrapped */
         }
         .card-body {
             padding: 1.5rem;
@@ -47,7 +49,13 @@
         }
          .info-item .value {
             color: #1f2937;
-            text-align: right;
+            text-align: left; /* MODIFICATION: Better for wrapping text on mobile */
+            word-break: break-word; /* MODIFICATION: Ensure long values without spaces can wrap */
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+             .info-item .value {
+                text-align: right; /* MODIFICATION: Revert to right-align on larger screens */
+            }
         }
         .pdf-btn {
             background-color: #4f46e5;
@@ -245,13 +253,14 @@
     <!-- Main Content (hidden by default) -->
     <div id="content-container" class="hidden">
         <div class="max-w-7xl mx-auto">
-            <header class="text-center mb-8 relative">
-                <h1 class="text-3xl font-bold text-gray-800">Smoke Alarm Installation Submissions</h1>
-                <p class="text-xl text-gray-600">Springfield Township Fire Department</p>
-                <button id="request-notify-btn" class="hidden absolute top-0 left-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
+            <!-- MODIFICATION: Added padding-top for mobile, responsive button positioning, and responsive text size -->
+            <header class="text-center mb-8 relative pt-16 md:pt-0">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Smoke Alarm Installation Submissions</h1>
+                <p class="text-lg sm:text-xl text-gray-600">Springfield Township Fire Department</p>
+                <button id="request-notify-btn" class="hidden absolute top-4 left-4 md:top-0 md:left-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
                     Enable Notifications
                 </button>
-                <button id="sign-out-btn" class="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
+                <button id="sign-out-btn" class="absolute top-4 right-4 md:top-0 md:right-0 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
                     Sign Out
                 </button>
             </header>
@@ -329,7 +338,7 @@
     </div>
 
     <!-- Denial Reason Modal -->
-    <div id="deny-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center">
+    <div id="deny-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center p-4"> <!-- MODIFICATION: Added p-4 for spacing on small screens -->
         <div class="login-card p-6"> <!-- Re-using login-card style -->
             <form id="deny-form">
                 <h2 class="text-xl font-bold text-center text-gray-800 mb-4">Deny Request</h2>
