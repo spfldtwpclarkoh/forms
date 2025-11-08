@@ -80,6 +80,24 @@
             background-color: #dcfce7;
             color: #166534;
         }
+        .status-denied {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+        }
+        .deny-btn {
+            background-color: #dc2626; /* red-600 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            margin-left: 0.5rem; /* Add some space */
+        }
+        .deny-btn:hover {
+            background-color: #b91c1c; /* red-700 */
+        }
 
         /* Login Form Styles */
         #login-container {
@@ -133,6 +151,74 @@
         .hidden {
             display: none !important;
         }
+
+        /* --- PDF Template Styles --- */
+        /* Positioned off-screen for reliable html2canvas capture */
+        #pdf-template {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            display: block !important;
+            width: 800px; /* A fixed width for consistent rendering */
+            padding: 40px;
+            background-color: white;
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            box-sizing: border-box; /* Ensure padding is included in width */
+        }
+        #pdf-template h1 {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        #pdf-template h2 {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1f2937;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        #pdf-template .info-table,
+        #pdf-template #pdf-installation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        #pdf-template .info-table td,
+        #pdf-template #pdf-installation-table td,
+        #pdf-template #pdf-installation-table th {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            word-break: break-word; /* Handle long text */
+        }
+        #pdf-template .info-table td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+        #pdf-template #pdf-installation-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        #pdf-template .checkbox {
+            font-family: monospace; /* Ensures checkbox alignment */
+            font-size: 14pt;
+        }
+        #pdf-template p {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        #pdf-template img {
+            max-width: 100%;
+            height: 40px; /* Keep consistent height */
+        }
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-6 md:p-8">
@@ -176,7 +262,7 @@
     </div>
 
     <!-- This is the hidden template for the PDF -->
-    <div id="pdf-template" class="hidden">
+    <div id="pdf-template"> <!-- REMOVED class="hidden" -->
         <!-- PDF Template remains the same -->
         <h1>Smoke Alarm Installation</h1>
         
@@ -241,9 +327,27 @@
         </table>
     </div>
 
+    <!-- Denial Reason Modal -->
+    <div id="deny-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center">
+        <div class="login-card p-6"> <!-- Re-using login-card style -->
+            <form id="deny-form">
+                <h2 class="text-xl font-bold text-center text-gray-800 mb-4">Deny Request</h2>
+                <div class="mb-4">
+                    <label for="denial-reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Denial</label>
+                    <textarea id="denial-reason" class="form-input" rows="4" required></textarea>
+                </div>
+                <p id="deny-error" class="error-message hidden"></p>
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button type="button" id="cancel-deny-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg">Cancel</button>
+                    <button type="submit" id="confirm-deny-btn" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg">Confirm Denial</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         // Import Firebase Auth modules
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -270,6 +374,15 @@
         const signOutBtn = document.getElementById('sign-out-btn');
         const submissionsContainer = document.getElementById('submissions-container');
         const notifyBtn = document.getElementById('request-notify-btn');
+        
+        // Denial Modal Elements
+        const denyModal = document.getElementById('deny-modal');
+        const denyForm = document.getElementById('deny-form');
+        const denyError = document.getElementById('deny-error');
+        const cancelDenyBtn = document.getElementById('cancel-deny-btn');
+        const confirmDenyBtn = document.getElementById('confirm-deny-btn');
+        const denialReasonText = document.getElementById('denial-reason');
+        let docToDenyId = null; // Variable to hold the doc ID
         
         const { jsPDF } = window.jspdf;
 
@@ -298,9 +411,8 @@
             }
         }
 
-        // --- PDF Generation Function (unchanged) ---
+        // --- PDF Generation Function (IMPROVED) ---
         async function generatePdf(data) {
-           // PDF generation logic remains the same.
            // Populate the template with data
             document.getElementById('pdf-residentName').textContent = data.residentName || '';
             document.getElementById('pdf-address').textContent = data.address || '';
@@ -340,40 +452,85 @@
             document.getElementById('pdf-installerName').textContent = data.installerName || '';
             document.getElementById('pdf-submissionDate').textContent = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : '';
 
+            // --- Improved Image Loading ---
             const residentSigImg = document.getElementById('pdf-residentSig');
-            if (data.residentSignature) {
-                residentSigImg.src = data.residentSignature;
-                residentSigImg.style.display = 'block';
-            } else { residentSigImg.style.display = 'none'; }
-            
             const installerSigImg = document.getElementById('pdf-installerSig');
-            if (data.installerSignature) {
-                installerSigImg.src = data.installerSignature;
-                installerSigImg.style.display = 'block';
-            } else { installerSigImg.style.display = 'none'; }
+
+            // Helper function to create an image loading promise
+            const loadImage = (imgElement, src) => {
+                return new Promise((resolve) => {
+                    if (!src) {
+                        imgElement.style.display = 'none';
+                        resolve(); // Resolve immediately if no src
+                        return;
+                    }
+                    imgElement.src = src;
+                    imgElement.style.display = 'block';
+                    imgElement.onload = () => resolve();
+                    imgElement.onerror = () => {
+                        console.error("Failed to load signature image.");
+                        // We still resolve so PDF generation doesn't break,
+                        // but the image will be missing/broken.
+                        resolve(); 
+                    };
+                });
+            };
+
+            // Create promises for both images
+            const residentSigPromise = loadImage(residentSigImg, data.residentSignature);
+            const installerSigPromise = loadImage(installerSigImg, data.installerSignature);
             
             const template = document.getElementById('pdf-template');
-            template.classList.remove('hidden');
+            // template.classList.remove('hidden'); // <-- No longer needed
 
             try {
-                const canvas = await html2canvas(template, { scale: 2, useCORS: true });
+                // Wait for both images to finish loading (or failing)
+                await Promise.all([residentSigPromise, installerSigPromise]);
+
+                // Now that images are loaded, capture the canvas
+                const canvas = await html2canvas(template, { 
+                    scale: 3, // Increased scale for better quality
+                    useCORS: true,
+                    logging: false // Suppress console logs from html2canvas
+                });
+
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
                 const imgWidth = canvas.width;
                 const imgHeight = canvas.height;
                 const ratio = imgWidth / imgHeight;
-                const pdfHeight = (pdfWidth - 20) / ratio;
-                
-                pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, pdfHeight);
+
+                // Calculate dimensions to fit within A4 page with margins
+                const margin = 10; // 10mm margin
+                let effectiveWidth = pdfWidth - (2 * margin);
+                let effectiveHeight = effectiveWidth / ratio;
+
+                // Check if height exceeds page height
+                if (effectiveHeight > (pdfHeight - (2 * margin))) {
+                    // If it does, recalculate based on height
+                    effectiveHeight = pdfHeight - (2 * margin);
+                    effectiveWidth = effectiveHeight * ratio;
+                    pdf.addImage(imgData, 'PNG', (pdfWidth - effectiveWidth) / 2, margin, effectiveWidth, effectiveHeight);
+                } else {
+                    pdf.addImage(imgData, 'PNG', margin, margin, effectiveWidth, effectiveHeight);
+                }
                 
                 const safeName = (data.residentName || 'resident').replace(/[^a-z0-9]/gi, '_').toLowerCase();
                 const date = data.residentDate || new Date().toISOString().split('T')[0];
                 pdf.save(`STFD_Submission_${safeName}_${date}.pdf`);
+                
             } catch(err) {
                 console.error("Error generating PDF:", err);
             } finally {
-                template.classList.add('hidden');
+                // template.classList.add('hidden'); // <-- No longer needed
+                // Reset images
+                residentSigImg.src = '';
+                residentSigImg.style.display = 'none';
+                installerSigImg.src = '';
+                installerSigImg.style.display = 'none';
             }
         }
 
@@ -427,9 +584,13 @@
                     // Set status text and style
                     let statusText = 'Completed';
                     let statusClass = 'status-completed';
+                    let denialReason = data.denialReason || '';
                     if (isRequest) {
                         statusText = 'New Request';
                         statusClass = 'status-request';
+                    } else if (data.status === 'denied') {
+                        statusText = 'Denied';
+                        statusClass = 'status-denied';
                     }
 
                     cardWrapper.innerHTML = `
@@ -439,13 +600,20 @@
                                     <h2 class="text-xl font-bold">${data.residentName}</h2>
                                     <span class="text-sm text-gray-300">${submissionDate}</span>
                                 </div>
-                                <button class="pdf-btn" ${isRequest ? 'disabled' : ''}>Generate PDF</button>
+                                ${isRequest ? '<button class="deny-btn">Deny</button>' : ''}
+                                <button class="pdf-btn" ${isRequest || data.status === 'denied' ? 'disabled' : ''}>Generate PDF</button>
                             </div>
                             <div class="card-body">
                                 <div class="info-item">
                                     <span class="label">Status:</span>
                                     <span class="value"><span class="status-badge ${statusClass}">${statusText}</span></span>
                                 </div>
+                                ${data.status === 'denied' ? `
+                                <div class="info-item">
+                                    <span class="label">Denial Reason:</span>
+                                    <span class="value">${denialReason}</span>
+                                </div>
+                                ` : ''}
                                 <div class="info-item"><span class="label">Address:</span><span class="value">${data.address}</span></div>
                                 <div class="info-item"><span class="label">Installer:</span><span class="value">${data.installerName || 'N/A'}</span></div>
                                 <div class="info-item"><span class="label">Alarms Installed:</span><span class="value">${data.alarmsInstalled || 'N/A'}</span></div>
@@ -461,12 +629,19 @@
                         card.addEventListener('click', () => {
                             window.location.href = `index.html?id=${doc.id}`;
                         });
+
+                        // Add listener for the new Deny button
+                        const denyButton = card.querySelector('.deny-btn');
+                        denyButton.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Stop click from bubbling to the card
+                            showDenyModal(doc.id);
+                        });
                     }
                     
                     submissionsContainer.appendChild(card);
                     
                     const pdfButton = card.querySelector('.pdf-btn');
-                    if (!isRequest) {
+                    if (!isRequest && data.status !== 'denied') {
                         pdfButton.addEventListener('click', (e) => {
                             e.stopPropagation();
                             pdfButton.textContent = 'Generating...';
@@ -484,6 +659,54 @@
                 isInitialLoad = false;
             });
         }
+
+        // --- Deny Modal Logic ---
+        function showDenyModal(docId) {
+            docToDenyId = docId;
+            denialReasonText.value = '';
+            denyError.classList.add('hidden');
+            denyModal.classList.remove('hidden');
+            denialReasonText.focus();
+        }
+
+        function hideDenyModal() {
+            docToDenyId = null;
+            denyModal.classList.add('hidden');
+        }
+
+        cancelDenyBtn.addEventListener('click', hideDenyModal);
+
+        denyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const reason = denialReasonText.value.trim();
+            if (!reason) {
+                denyError.textContent = 'A reason is required.';
+                denyError.classList.remove('hidden');
+                return;
+            }
+            if (!docToDenyId) return;
+
+            confirmDenyBtn.disabled = true;
+            confirmDenyBtn.textContent = 'Denying...';
+            denyError.classList.add('hidden');
+
+            try {
+                const docRef = doc(db, 'submissions', docToDenyId);
+                await updateDoc(docRef, {
+                    status: 'denied',
+                    denialReason: reason
+                });
+                // onSnapshot will handle the UI update
+                hideDenyModal();
+            } catch (err) { // <-- FIX: Added opening brace {
+                console.error("Error denying document:", err);
+                denyError.textContent = 'Failed to deny. Please try again.';
+                denyError.classList.remove('hidden');
+            } finally { // <-- FIX: Added closing brace }
+                confirmDenyBtn.disabled = false;
+                confirmDenyBtn.textContent = 'Confirm Denial';
+            }
+        });
 
         // --- Auth State Change Listener ---
         onAuthStateChanged(auth, (user) => {
