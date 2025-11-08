@@ -80,38 +80,99 @@
             background-color: #dcfce7;
             color: #166534;
         }
-        /* Styles for the hidden PDF template */
-        #pdf-template {
-            position: absolute;
-            left: -9999px;
-            top: auto;
-            width: 210mm;
-            padding: 15mm;
-            background: white;
-            color: black;
-            font-size: 12pt;
-            font-family: 'Times New Roman', Times, serif;
+
+        /* Login Form Styles */
+        #login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
         }
-        #pdf-template h1 { font-size: 20pt; font-weight: bold; text-align: center; }
-        #pdf-template h2 { font-size: 14pt; font-weight: bold; margin-top: 1rem; border-bottom: 1px solid #000; padding-bottom: 2px; }
-        #pdf-template .info-table { width: 100%; margin-top: 0.5rem; }
-        #pdf-template .info-table td { padding: 4px; }
-        #pdf-template .info-table td:first-child { font-weight: bold; width: 150px; }
-        #pdf-template .checkbox { font-size: 16pt; }
-        #pdf-template #pdf-installation-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-        #pdf-template #pdf-installation-table th, #pdf-template #pdf-installation-table td { border: 1px solid #000; padding: 5px; text-align: left;}
+        .login-card {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            width: 100%;
+            max-width: 28rem;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #bfdbfe;
+        }
+        .login-btn {
+            width: 100%;
+            background-color: #1f2937;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .login-btn:hover {
+            background-color: #374151;
+        }
+        .login-btn:disabled {
+            background-color: #9ca3af;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-6 md:p-8">
-    <div class="max-w-7xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">Smoke Alarm Installation Submissions</h1>
-            <p class="text-xl text-gray-600">Springfield Township Fire Department</p>
-        </header>
+    <!-- Login Form -->
+    <div id="login-container">
+        <div class="login-card">
+            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">STFD Submissions Login</h1>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" class="form-input" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" class="form-input" required>
+                </div>
+                <button type="submit" id="login-button" class="login-btn">Login</button>
+                <p id="login-error" class="error-message hidden"></p>
+            </form>
+        </div>
+    </div>
 
-        <main id="submissions-container">
-            <p class="text-center text-gray-500">Loading submissions...</p>
-        </main>
+    <!-- Main Content (hidden by default) -->
+    <div id="content-container" class="hidden">
+        <div class="max-w-7xl mx-auto">
+            <header class="text-center mb-8 relative">
+                <h1 class="text-3xl font-bold text-gray-800">Smoke Alarm Installation Submissions</h1>
+                <p class="text-xl text-gray-600">Springfield Township Fire Department</p>
+                <button id="request-notify-btn" class="hidden absolute top-0 left-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
+                    Enable Notifications
+                </button>
+                <button id="sign-out-btn" class="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
+                    Sign Out
+                </button>
+            </header>
+
+            <main id="submissions-container">
+                <p class="text-center text-gray-500">Loading submissions...</p>
+            </main>
+        </div>
     </div>
 
     <!-- This is the hidden template for the PDF -->
@@ -183,8 +244,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Import Firebase Auth modules
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
         const firebaseConfig = {
+            // Your existing config is here
             apiKey: "AIzaSyBlZP-8fKHBD32ZcRJbtZfrC8tw51XUVk8",
             authDomain: "stfd-smoke-detector-form.firebaseapp.com",
             projectId: "stfd-smoke-detector-form",
@@ -196,10 +260,45 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); // Initialize Auth
 
+        const loginContainer = document.getElementById('login-container');
+        const contentContainer = document.getElementById('content-container');
+        const loginForm = document.getElementById('login-form');
+        const loginButton = document.getElementById('login-button');
+        const loginError = document.getElementById('login-error');
+        const signOutBtn = document.getElementById('sign-out-btn');
         const submissionsContainer = document.getElementById('submissions-container');
+        const notifyBtn = document.getElementById('request-notify-btn');
+        
         const { jsPDF } = window.jspdf;
 
+        let firestoreUnsubscribe = null; // To hold the onSnapshot listener
+        let isInitialLoad = true; // To prevent notifications on first load
+
+        // --- Audio Notification Function ---
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A nice "ping"
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (err) {
+                console.error("Could not play notification sound:", err);
+            }
+        }
+
+        // --- PDF Generation Function (unchanged) ---
         async function generatePdf(data) {
            // PDF generation logic remains the same.
            // Populate the template with data
@@ -278,78 +377,202 @@
             }
         }
 
-        const q = query(collection(db, "submissions"), orderBy("createdAt", "desc"));
+        // --- Function to load submissions ---
+        function loadSubmissions() {
+            submissionsContainer.innerHTML = '<p class="text-center text-gray-500">Loading submissions...</p>';
+            
+            const q = query(collection(db, "submissions"), orderBy("createdAt", "desc"));
 
-        onSnapshot(q, (querySnapshot) => {
-            if (querySnapshot.empty) {
-                submissionsContainer.innerHTML = '<p class="text-center text-gray-500">No submissions found.</p>';
-                return;
-            }
-
-            submissionsContainer.innerHTML = '';
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const cardWrapper = document.createElement('div');
-                
-                const submissionDate = data.createdAt.toDate().toLocaleString();
-                const isRequest = data.status === 'request';
-                
-                // Set status text and style
-                let statusText = 'Completed';
-                let statusClass = 'status-completed';
-                if (isRequest) {
-                    statusText = 'New Request';
-                    statusClass = 'status-request';
+            // Store the listener so we can unsubscribe later
+            firestoreUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                if (querySnapshot.empty) {
+                    submissionsContainer.innerHTML = '<p class="text-center text-gray-500">No submissions found.</p>';
+                    return;
                 }
 
-                cardWrapper.innerHTML = `
-                    <div class="submission-card">
-                        <div class="card-header">
-                            <div class="flex-grow">
-                                <h2 class="text-xl font-bold">${data.residentName}</h2>
-                                <span class="text-sm text-gray-300">${submissionDate}</span>
+                // --- Notification Logic ---
+                // Process changes to check for new requests
+                querySnapshot.docChanges().forEach((change) => {
+                    // Only trigger for documents 'added' *after* the initial page load
+                    if (change.type === 'added' && !isInitialLoad) {
+                        const docData = change.doc.data();
+                        // Only trigger if the new document is a 'request'
+                        if (docData.status === 'request') {
+                            console.log('New request added:', docData.residentName);
+                            
+                            // 1. Play audio cue
+                            playNotificationSound();
+                            
+                            // 2. Show browser notification (if permission granted)
+                            if (Notification.permission === 'granted') {
+                                new Notification('New Smoke Alarm Request', {
+                                    body: `From: ${docData.residentName}\nAddress: ${docData.address}`,
+                                    icon: './images/favicon.ico' // Optional: uses your favicon
+                                });
+                            }
+                        }
+                    }
+                });
+
+                // --- Render Logic ---
+                // Re-render the entire list from all docs (simplest way to keep UI in sync)
+                submissionsContainer.innerHTML = ''; 
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const cardWrapper = document.createElement('div');
+                    
+                    const submissionDate = data.createdAt.toDate().toLocaleString();
+                    const isRequest = data.status === 'request';
+                    
+                    // Set status text and style
+                    let statusText = 'Completed';
+                    let statusClass = 'status-completed';
+                    if (isRequest) {
+                        statusText = 'New Request';
+                        statusClass = 'status-request';
+                    }
+
+                    cardWrapper.innerHTML = `
+                        <div class="submission-card">
+                            <div class="card-header">
+                                <div class="flex-grow">
+                                    <h2 class="text-xl font-bold">${data.residentName}</h2>
+                                    <span class="text-sm text-gray-300">${submissionDate}</span>
+                                </div>
+                                <button class="pdf-btn" ${isRequest ? 'disabled' : ''}>Generate PDF</button>
                             </div>
-                            <button class="pdf-btn" ${isRequest ? 'disabled' : ''}>Generate PDF</button>
-                        </div>
-                        <div class="card-body">
-                            <div class="info-item">
-                                <span class="label">Status:</span>
-                                <span class="value"><span class="status-badge ${statusClass}">${statusText}</span></span>
+                            <div class="card-body">
+                                <div class="info-item">
+                                    <span class="label">Status:</span>
+                                    <span class="value"><span class="status-badge ${statusClass}">${statusText}</span></span>
+                                </div>
+                                <div class="info-item"><span class="label">Address:</span><span class="value">${data.address}</span></div>
+                                <div class="info-item"><span class="label">Installer:</span><span class="value">${data.installerName || 'N/A'}</span></div>
+                                <div class="info-item"><span class="label">Alarms Installed:</span><span class="value">${data.alarmsInstalled || 'N/A'}</span></div>
                             </div>
-                            <div class="info-item"><span class="label">Address:</span><span class="value">${data.address}</span></div>
-                            <div class="info-item"><span class="label">Installer:</span><span class="value">${data.installerName || 'N/A'}</span></div>
-                            <div class="info-item"><span class="label">Alarms Installed:</span><span class="value">${data.alarmsInstalled || 'N/A'}</span></div>
                         </div>
-                    </div>
-                `;
-                
-                const card = cardWrapper.firstElementChild;
-                
-                // If it's a new request, make the card clickable to open the full form
-                if(isRequest) {
-                    card.style.cursor = 'pointer';
-                    card.addEventListener('click', () => {
-                        window.location.href = `index.html?id=${doc.id}`;
-                    });
-                }
-                
-                submissionsContainer.appendChild(card);
-                
-                const pdfButton = card.querySelector('.pdf-btn');
-                if (!isRequest) {
-                    pdfButton.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        pdfButton.textContent = 'Generating...';
-                        pdfButton.disabled = true;
-                        
-                        generatePdf(data).finally(() => {
-                           pdfButton.textContent = 'Generate PDF';
-                           pdfButton.disabled = false;
+                    `;
+                    
+                    const card = cardWrapper.firstElementChild;
+                    
+                    // If it's a new request, make the card clickable to open the full form
+                    if(isRequest) {
+                        card.style.cursor = 'pointer';
+                        card.addEventListener('click', () => {
+                            window.location.href = `index.html?id=${doc.id}`;
                         });
-                    });
-                }
+                    }
+                    
+                    submissionsContainer.appendChild(card);
+                    
+                    const pdfButton = card.querySelector('.pdf-btn');
+                    if (!isRequest) {
+                        pdfButton.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            pdfButton.textContent = 'Generating...';
+                            pdfButton.disabled = true;
+                            
+                            generatePdf(data).finally(() => {
+                               pdfButton.textContent = 'Generate PDF';
+                               pdfButton.disabled = false;
+                            });
+                        });
+                    }
+                });
+                
+                // After the first snapshot is processed, set the flag to false
+                isInitialLoad = false;
             });
+        }
+
+        // --- Auth State Change Listener ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                console.log("User is signed in:", user.email);
+                loginContainer.classList.add('hidden');
+                contentContainer.classList.remove('hidden');
+
+                // Reset initial load flag on login
+                isInitialLoad = true;
+                
+                // Check notification permission and show button if needed
+                if (Notification.permission === 'default') {
+                    notifyBtn.classList.remove('hidden');
+                } else {
+                    notifyBtn.classList.add('hidden');
+                }
+
+                loadSubmissions(); // Load data only when authenticated
+            } else {
+                // User is signed out
+                console.log("User is signed out.");
+                loginContainer.classList.remove('hidden');
+                contentContainer.classList.add('hidden');
+                notifyBtn.classList.add('hidden'); // Hide notify button on logout
+                
+                // Clear submissions
+                submissionsContainer.innerHTML = '';
+                
+                // Unsubscribe from Firestore listener if it exists
+                if (firestoreUnsubscribe) {
+                    firestoreUnsubscribe();
+                    firestoreUnsubscribe = null;
+                }
+            }
         });
+
+        // --- Login Form Submit Event ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            loginButton.disabled = true;
+            loginButton.textContent = 'Logging in...';
+            loginError.classList.add('hidden');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // Auth state change listener will handle UI update
+            } catch (error) {
+                console.error("Login failed:", error.code, error.message);
+                if (error.code === 'auth/invalid-credential') {
+                     loginError.textContent = 'Invalid email or password.';
+                } else {
+                     loginError.textContent = 'An error occurred. Please try again.';
+                }
+                loginError.classList.remove('hidden');
+            } finally {
+                loginButton.disabled = false;
+                loginButton.textContent = 'Login';
+            }
+        });
+
+        // --- Sign Out Button Click Event ---
+        signOutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                // Auth state change listener will handle UI update
+            } catch (error) {
+                console.error("Sign out failed:", error);
+                alert("Failed to sign out. Please try again.");
+            }
+        });
+
+        // --- Notification Permission Button Event ---
+        notifyBtn.addEventListener('click', async () => {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted' || permission === 'denied') {
+                    notifyBtn.classList.add('hidden');
+                }
+                console.log('Notification permission status:', permission);
+            } catch (err) {
+                console.error('Error requesting notification permission:', err);
+            }
+        });
+
     </script>
 </body>
 </html>

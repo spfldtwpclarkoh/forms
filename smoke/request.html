@@ -186,7 +186,7 @@
                 console.log("Request submitted to Firebase with ID: ", docRef.id);
 
                 // 2. Submit to Google Sheet
-                const googleScriptURL = 'https://script.google.com/macros/s/AKfycbw2U137IGssst0fLLVFnUg6V7Nu2ST_D-mgTq79PjuAoQ8rmAlOTsLPf-qkRZiB1oUPjw/exec'; // <-- IMPORTANT: REPLACE THIS URL
+                const googleScriptURL = 'https://script.google.com/macros/s/AKfycbwuzVUNE8tb4Rx4bag7DIjwFSQ6xixI6AO-z6wWYLH2xSkwHZSeaBvv8maiTW_f7Y3ajw/exec'; // <-- IMPORTANT: REPLACE THIS URL
 
                 if (googleScriptURL !== 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE' && googleScriptURL !== '') {
                     const date = `${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')}/${now.getFullYear()}`;
