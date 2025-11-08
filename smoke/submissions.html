@@ -632,15 +632,27 @@
 
                 // --- MODIFICATION: Sort the results in JavaScript ---
                 const docs = querySnapshot.docs;
-                // Sort by the 'createdAt' timestamp, descending (newest first)
-                docs.sort((a, b) => b.data().createdAt.toDate() - a.data().createdAt.toDate());
+                
+                // --- MODIFICATION: Made sorting "defensive" ---
+                // This handles cases where 'createdAt' might be missing or null in a document,
+                // preventing the app from crashing.
+                docs.sort((a, b) => {
+                    const dateA = a.data().createdAt?.toDate() || new Date(0); // Use optional chaining and default
+                    const dateB = b.data().createdAt?.toDate() || new Date(0); // Use optional chaining and default
+                    return dateB - dateA; // Sort descending (newest first)
+                });
                 
                 // --- MODIFICATION: Iterate over the sorted 'docs' array ---
                 docs.forEach((doc) => {
                     const data = doc.data();
                     const cardWrapper = document.createElement('div');
                     
-                    const submissionDate = data.createdAt.toDate().toLocaleString();
+                    // --- MODIFICATION: Defensive date formatting ---
+                    // Handles missing 'createdAt' fields without crashing.
+                    const submissionDate = data.createdAt 
+                        ? data.createdAt.toDate().toLocaleString() 
+                        : 'Date not available';
+                        
                     const isRequest = data.status === 'request';
                     
                     // Set status text and style
